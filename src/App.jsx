@@ -304,7 +304,7 @@ function AuthPage({ onLogin }) {
               <button key={r} onClick={() => setRole(r)}
                 style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: 13, transition: "all .2s",
                   background: role === r ? C.accent : "transparent", color: role === r ? "#0a0f0d" : C.muted }}>
-                {r === "user" ? "🌿 Citizen" : "🏛️ Admin"}
+                {r === "user" ? "Citizen" : "Admin"}
               </button>
             ))}
           </div>
@@ -341,12 +341,7 @@ function AuthPage({ onLogin }) {
           </div>
         </div>
 
-        {/* Demo hint */}
-        <div style={{ marginTop: 16, padding: 14, borderRadius: 10, background: C.accentGlow, border: `1px solid ${C.dim}`, textAlign: "center" }}>
-          <p style={{ fontSize: 12, color: C.muted }}>
-            Demo: Just click <strong style={{ color: C.accent }}>Sign In</strong> — no credentials needed
-          </p>
-        </div>
+       
       </div>
     </div>
   );
