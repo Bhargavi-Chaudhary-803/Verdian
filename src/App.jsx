@@ -720,120 +720,10 @@ function AIScanner({ user }) {
 
   return (
     <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 360px", gap:24 }}>
-        <div className="card" style={{ padding:28 }}>
-          <div className="heading" style={{ fontWeight:800, fontSize:20, color:C.text, marginBottom:6 }}>AI Waste Classifier</div>
-          <p style={{ color:C.muted, fontSize:13, marginBottom:24 }}>Classify waste and save it directly to your log.</p>
-          <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-            {["upload","manual"].map(t=>(
-              <button key={t} onClick={()=>{setActiveTab(t);reset();}}
-                className={`btn-ghost ${activeTab===t?"tab-active":""}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:13 }}>
-                {t==="upload"?"Upload Image":"Manual Input"}
-              </button>
-            ))}
-          </div>
 
-          {phase==="idle" && (
-            activeTab==="upload" ? (
-              <div>
-                <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleFileChange}/>
-                <div style={{ border:`2px dashed ${C.dim}`, borderRadius:16, padding:48, textAlign:"center", cursor:"pointer", transition:"all .2s" }}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor=C.accent}
-                  onMouseLeave={e=>e.currentTarget.style.borderColor=C.dim}
-                  onClick={()=>fileInputRef.current?.click()}>
-                  <div style={{ width:64, height:64, borderRadius:16, background:C.accentGlow, border:`1px solid ${C.dim}`, margin:"0 auto 16px", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <Upload size={28} color={C.accent}/>
-                  </div>
-                  <div style={{ fontWeight:600, color:C.text, marginBottom:6 }}>Upload Waste Image</div>
-                  <div style={{ fontSize:13, color:C.muted }}>Click to browse — JPG, PNG, WEBP supported</div>
-                  <div style={{ marginTop:12, fontSize:12, color:C.muted, padding:"6px 14px", background:C.accentGlow, borderRadius:100, display:"inline-block" }}>
-                    AI will classify automatically on upload
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>Describe your waste item</label>
-                <input style={{ width:"100%", padding:"12px 16px", borderRadius:10, fontSize:14, marginBottom:12 }}
-                  placeholder="e.g. Plastic bottle, old battery..." value={manualInput}
-                  onChange={e=>setManualInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleManual()}/>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
-                  {aiWasteItems.slice(0,5).map((item,i)=>(
-                    <button key={i} className="btn-ghost" style={{ padding:"6px 14px", borderRadius:100, fontSize:12 }}
-                      onClick={()=>{ setManualInput(item.name); setSelectedItem(item); setPhase("result"); }}>
-                      {item.name}
-                    </button>
-                  ))}
-                </div>
-                <button className="btn-primary" style={{ padding:"12px 24px", borderRadius:10, fontSize:14 }} onClick={handleManual}>Classify →</button>
-              </div>
-            )
-          )}
-
-          {phase==="scanning" && (
-            <div style={{ padding:"60px 0", textAlign:"center" }}>
-              <div style={{ width:120, height:120, border:`2px solid ${C.accent}`, borderRadius:16, margin:"0 auto 24px", position:"relative", overflow:"hidden" }}>
-                <ScanLine size={48} color={C.accent} style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", opacity:0.3 }}/>
-                <div className="scan-line"/>
-              </div>
-              <div className="heading" style={{ fontWeight:700, fontSize:18, color:C.text }}>Analysing...</div>
-              <div style={{ color:C.muted, marginTop:8, fontSize:13 }}>AI model processing</div>
-            </div>
-          )}
-
-          {phase==="result" && selectedItem && (()=>{
-            const meta = catMeta[selectedItem.category];
-            return (
-              <div className="fade-in">
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <CheckCircle size={20} color={C.accent}/><span style={{ fontWeight:600, color:C.text }}>Classification complete</span>
-                  </div>
-                  <button className="btn-ghost" style={{ padding:"6px 14px", borderRadius:8, fontSize:12 }} onClick={reset}>Scan another</button>
-                </div>
-                <div style={{ padding:24, borderRadius:16, background:`${meta.color}12`, border:`1px solid ${meta.color}30`, marginBottom:16 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
-                    <div>
-                      <div style={{ fontSize:22, fontWeight:700, color:C.text }}>{selectedItem.name}</div>
-                      <div style={{ fontSize:18, color:meta.color, fontWeight:600 }}>{meta.label}</div>
-                    </div>
-                    <div style={{ textAlign:"right" }}>
-                      <div className="heading" style={{ fontSize:28, fontWeight:800, color:meta.color }}>{selectedItem.confidence}%</div>
-                      <div style={{ fontSize:12, color:C.muted }}>confidence</div>
-                    </div>
-                  </div>
-                  <div style={{ height:6, borderRadius:3, background:C.dim, overflow:"hidden", marginBottom:16 }}>
-                    <div style={{ height:"100%", width:`${selectedItem.confidence}%`, background:meta.color, borderRadius:3 }}/>
-                  </div>
-                  <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
-                    <div style={{ padding:"8px 16px", borderRadius:10, background:`${meta.color}20`, border:`1px solid ${meta.color}40`, fontSize:13, color:meta.color, fontWeight:600 }}>
-                      {meta.bin}
-                    </div>
-                    <div style={{ padding:"8px 16px", borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}`, fontSize:13, color:C.accent, fontWeight:600 }}>
-                      +{selectedItem.points} pts
-                    </div>
-                    <button className="btn-primary" style={{ padding:"8px 20px", borderRadius:10, fontSize:13, marginLeft:"auto", display:"flex", alignItems:"center", gap:6 }}
-                      onClick={saveToDatabase} disabled={saving||!!saveMsg}>
-                      {saving?<Spinner size={14}/>:null} {saveMsg||"Save to Log"}
-                    </button>
-                  </div>
-                  {/* Location for map pin */}
-                  {!saveMsg && (
-                    <ScannerLocation scannerLocation={scannerLocation} setScannerLocation={setScannerLocation}/>
-                  )}
-                </div>
-                <div style={{ padding:20, borderRadius:12, background:"#f8fafc", border:`1px solid ${C.border}` }}>
-                  <div style={{ fontWeight:600, color:C.text, marginBottom:8, fontSize:14 }}>Disposal Guidance</div>
-                  <p style={{ color:C.muted, fontSize:13, lineHeight:1.7 }}>{selectedItem.guidance}</p>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Scan History */}
-        <div className="card" style={{ padding:20 }}>
-          <div className="heading" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:14 }}>Scan History</div>
+      {/* Scan History */}
+      <div className="card" style={{ padding:20 }}>
+        <div className="heading" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:14 }}>Scan History</div>
           {history.length===0 ? <div style={{ color:C.muted, fontSize:13 }}>No scans yet.</div> : (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {history.map((log,i)=>{
@@ -852,7 +742,6 @@ function AIScanner({ user }) {
             </div>
           )}
         </div>
-      </div>
 
       {/* ── Waste Assistant Chatbot ── */}
       <div className="card" style={{ padding:24 }}>
