@@ -5,7 +5,7 @@ import {
   User, Bell, Upload, CheckCircle, AlertTriangle,
   Recycle, TrendingUp, TrendingDown, Clock, Shield, Users,
   Map, ScanLine, Plus, X, Star, Activity, Download,
-  Home, Radio, Settings, Loader, Award, Calendar
+  Home, Radio, Settings, Loader, Award, Calendar, Truck, Phone, Navigation
 } from "lucide-react";
 
 // ─── Supabase ─────────────────────────────────────────────────────────────────
@@ -483,6 +483,7 @@ function Sidebar({ user, activeSection, setActiveSection, onLogout }) {
     { id:"admin-dashboard", icon:Shield,   label:"Admin Overview" },
     { id:"map",             icon:Map,      label:"City Map" },
     { id:"hotspots",        icon:Radio,    label:"Hotspots" },
+    { id:"dispatch",        icon:Truck,    label:"Dispatch Centre" },
   ];
   const links = user.role === "admin" ? adminLinks : userLinks;
   return (
@@ -1976,12 +1977,467 @@ function HotspotsPage() {
   );
 }
 
-// ─── APP SHELL ────────────────────────────────────────────────────────────────
+// ─── DISPATCH CENTRE ──────────────────────────────────────────────────────────
+function DispatchCentre() {
+  const [tab, setTab]               = useState("agencies");
+  const [agencies, setAgencies]     = useState([]);
+  const [dispatches, setDispatches] = useState([]);
+  const [pickers, setPickers]       = useState([]);
+  const [hotspots, setHotspots]     = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [aiRec, setAiRec]           = useState([]);
+  const [aiLoading, setAiLoading]   = useState(false);
+  const [showAddAgency, setShowAddAgency] = useState(false);
+  const [newAgency, setNewAgency]   = useState({ name:"", zone:"", contact:"", vehicles:1, speciality:"general" });
+  const [saving, setSaving]         = useState(false);
+
+  const loadAll = async () => {
+    const [{ data:ag }, { data:dis }, { data:pk }, { data:hs }] = await Promise.all([
+      supabase.from("agencies").select("*").order("name"),
+      supabase.from("dispatches").select("*,agencies(name)").order("created_at",{ascending:false}).limit(50),
+      supabase.from("pickers").select("*").order("last_seen",{ascending:false}),
+      supabase.from("hotspots").select("*").order("volume",{ascending:false}),
+    ]);
+    setAgencies(ag||[]); setDispatches(dis||[]); setPickers(pk||[]); setHotspots(hs||[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadAll();
+    const sub = supabase.channel("dispatch-centre")
+      .on("postgres_changes",{event:"*",schema:"public",table:"agencies"},()=>loadAll())
+      .on("postgres_changes",{event:"*",schema:"public",table:"dispatches"},()=>loadAll())
+      .on("postgres_changes",{event:"*",schema:"public",table:"pickers"},()=>loadAll())
+      .subscribe();
+    return () => supabase.removeChannel(sub);
+  }, []);
+
+  // ── Haversine distance in km ─────────────────────────────────────────────────
+  const dist = (lat1,lng1,lat2,lng2) => {
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  };
+
+  // ── AI dispatch recommendation via Claude API ────────────────────────────────
+  const runAiRecommendation = async () => {
+    if (!hotspots.length || !agencies.length) return;
+    setAiLoading(true); setAiRec([]);
+    const urgentHotspots = hotspots.filter(h=>h.collections_needed>0).slice(0,5);
+    const prompt = `You are a municipal waste dispatch AI for Delhi. Given the following waste hotspots needing collection and available agencies, recommend the optimal agency-to-hotspot assignments. Be concise.
+
+HOTSPOTS NEEDING COLLECTION:
+${urgentHotspots.map(h=>`- ${h.name} (${h.level} priority, ${h.volume}kg, lat:${h.lat}, lng:${h.lng})`).join("\n")}
+
+AVAILABLE AGENCIES:
+${agencies.map(a=>`- ${a.name}, zone:${a.zone}, vehicles:${a.vehicles}, speciality:${a.speciality}, status:${a.status}`).join("\n")}
+
+ACTIVE PICKERS NEARBY:
+${pickers.filter(p=>p.status==="available").slice(0,8).map(p=>`- ${p.name}, lat:${p.lat}, lng:${p.lng}, speciality:${p.speciality}`).join("\n")||"None currently active"}
+
+Respond ONLY with a JSON array (no markdown, no explanation) of objects:
+[{"hotspot":"name","agency":"name","picker":"name or null","reason":"1 sentence","priority":"high|med|low"}]`;
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:1000,
+          messages:[{role:"user",content:prompt}]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.map(c=>c.text||"").join("").replace(/```json|```/g,"").trim();
+      const parsed = JSON.parse(text);
+      setAiRec(Array.isArray(parsed)?parsed:[]);
+    } catch(e) { setAiRec([]); }
+    setAiLoading(false);
+  };
+
+  // ── Confirm AI dispatch recommendation ───────────────────────────────────────
+  const confirmDispatch = async (rec) => {
+    const hotspot = hotspots.find(h=>h.name===rec.hotspot);
+    const agency  = agencies.find(a=>a.name===rec.agency);
+    if (!hotspot||!agency) return;
+    await supabase.from("dispatches").insert({
+      hotspot_id: hotspot.id, hotspot_name: hotspot.name,
+      agency_id: agency.id,   agency_name: agency.name,
+      picker_name: rec.picker||null, reason: rec.reason,
+      priority: rec.priority, status:"pending",
+    });
+    await supabase.from("hotspots").update({collections_needed:0}).eq("id",hotspot.id);
+    setAiRec(prev=>prev.filter(r=>r.hotspot!==rec.hotspot));
+  };
+
+  // ── Add agency ───────────────────────────────────────────────────────────────
+  const addAgency = async () => {
+    if (!newAgency.name||!newAgency.zone) return;
+    setSaving(true);
+    await supabase.from("agencies").insert({...newAgency, status:"available", vehicles:parseInt(newAgency.vehicles)||1});
+    setNewAgency({name:"",zone:"",contact:"",vehicles:1,speciality:"general"});
+    setShowAddAgency(false); setSaving(false);
+  };
+
+  // ── Update dispatch status ────────────────────────────────────────────────────
+  const updateDispatch = async (id, status) => {
+    await supabase.from("dispatches").update({status}).eq("id",id);
+  };
+
+  const statusColor = { pending:C.warn, "en-route":C.blue, completed:C.accent, cancelled:C.danger };
+  const priColor    = { high:C.danger, med:C.warn, low:C.accent };
+
+  // ── Live picker distance to nearest hotspot ──────────────────────────────────
+  const pickerNearest = (p) => {
+    if (!p.lat||!p.lng||!hotspots.length) return null;
+    let best=null, bestD=Infinity;
+    hotspots.forEach(h=>{ const d=dist(p.lat,p.lng,h.lat,h.lng); if(d<bestD){bestD=d;best={...h,d:d.toFixed(1)};} });
+    return best;
+  };
+
+  if (loading) return <div style={{padding:40,textAlign:"center"}}><Spinner size={32}/></div>;
+
+  return (
+    <div className="fade-in" style={{padding:28,display:"flex",flexDirection:"column",gap:20}}>
+
+      {/* Header */}
+      <div className="card" style={{padding:24,background:"linear-gradient(135deg,#fff5f5 0%,#fee2e2 100%)",borderColor:"rgba(220,38,38,.2)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+              <Truck size={16} color={C.danger}/>
+              <span style={{fontSize:12,color:"#991b1b",fontWeight:700}}>DISPATCH CENTRE</span>
+            </div>
+            <div className="heading" style={{fontSize:22,fontWeight:800,color:"#7f1d1d"}}>Agencies & Waste Pickers</div>
+            <div style={{color:"#991b1b",fontSize:13,marginTop:4,opacity:0.8}}>
+              {agencies.length} agencies · {pickers.filter(p=>p.status==="available").length} pickers online · {dispatches.filter(d=>d.status==="pending").length} pending dispatches
+            </div>
+          </div>
+          <div style={{display:"flex",gap:10}}>
+            <div style={{padding:"10px 16px",borderRadius:10,background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",textAlign:"center"}}>
+              <div className="heading" style={{fontSize:20,fontWeight:800,color:C.danger}}>{hotspots.filter(h=>(h.collections_needed||0)>0).length}</div>
+              <div style={{fontSize:12,color:C.muted}}>Need Trucks</div>
+            </div>
+            <div style={{padding:"10px 16px",borderRadius:10,background:"rgba(37,99,235,.1)",border:"1px solid rgba(37,99,235,.3)",textAlign:"center"}}>
+              <div className="heading" style={{fontSize:20,fontWeight:800,color:C.blue}}>{pickers.filter(p=>p.status==="available").length}</div>
+              <div style={{fontSize:12,color:C.muted}}>Pickers Live</div>
+            </div>
+            <div style={{padding:"10px 16px",borderRadius:10,background:C.accentGlow,border:`1px solid ${C.dim}`,textAlign:"center"}}>
+              <div className="heading" style={{fontSize:20,fontWeight:800,color:C.accent}}>{dispatches.filter(d=>d.status==="en-route").length}</div>
+              <div style={{fontSize:12,color:C.muted}}>En Route</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8}}>
+        {[["agencies","Agencies"],["dispatches","Active Dispatches"],["pickers","Live Pickers"],["ai","AI Recommendations"]].map(([id,label])=>(
+          <button key={id} onClick={()=>setTab(id)}
+            className={`btn-ghost ${tab===id?"tab-active":""}`}
+            style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600}}>
+            {label}
+            {id==="ai"&&<span style={{marginLeft:6,padding:"1px 7px",borderRadius:100,background:"rgba(22,163,74,0.15)",fontSize:11,color:C.accent}}>AI</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* ── AGENCIES TAB ── */}
+      {tab==="agencies" && (
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div className="heading" style={{fontWeight:700,fontSize:16,color:C.text}}>Registered Agencies</div>
+            <button className="btn-primary" style={{padding:"8px 18px",borderRadius:10,fontSize:13,display:"flex",alignItems:"center",gap:6}}
+              onClick={()=>setShowAddAgency(!showAddAgency)}>
+              <Plus size={14}/> Add Agency
+            </button>
+          </div>
+
+          {showAddAgency && (
+            <div className="card fade-in" style={{padding:22}}>
+              <div className="heading" style={{fontWeight:700,fontSize:15,color:C.text,marginBottom:16}}>New Agency</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                {[["Agency Name","name","e.g. Green Collect Pvt Ltd"],["Zone Coverage","zone","e.g. North Delhi"],["Contact Number","contact","e.g. +91 98765 43210"],["Vehicles","vehicles","Number of trucks"]].map(([label,key,ph])=>(
+                  <div key={key}>
+                    <label style={{fontSize:12,color:C.muted,marginBottom:4,display:"block"}}>{label}</label>
+                    <input style={{width:"100%",padding:"9px 12px",borderRadius:8,fontSize:13}}
+                      placeholder={ph} value={newAgency[key]}
+                      onChange={e=>setNewAgency(p=>({...p,[key]:e.target.value}))}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginBottom:14}}>
+                <label style={{fontSize:12,color:C.muted,marginBottom:4,display:"block"}}>Speciality</label>
+                <select style={{padding:"9px 12px",borderRadius:8,fontSize:13,width:"100%"}}
+                  value={newAgency.speciality} onChange={e=>setNewAgency(p=>({...p,speciality:e.target.value}))}>
+                  {["general","recyclable","organic","hazardous","all"].map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn-primary" style={{padding:"9px 20px",borderRadius:9,fontSize:13}} onClick={addAgency} disabled={saving}>
+                  {saving?<Spinner size={13}/>:"Save Agency"}
+                </button>
+                <button className="btn-ghost" style={{padding:"9px 20px",borderRadius:9,fontSize:13}} onClick={()=>setShowAddAgency(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {agencies.length===0 ? (
+            <div className="card" style={{padding:40,textAlign:"center",color:C.muted,fontSize:14}}>No agencies yet. Add one above.</div>
+          ) : agencies.map(a=>(
+            <div key={a.id} className="card" style={{padding:20}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:14}}>
+                  <div style={{width:44,height:44,borderRadius:12,background:"rgba(37,99,235,.1)",border:"1px solid rgba(37,99,235,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <Truck size={20} color={C.blue}/>
+                  </div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:15,color:C.text}}>{a.name}</div>
+                    <div style={{fontSize:12,color:C.muted}}>Zone: {a.zone} · {a.vehicles} vehicle{a.vehicles>1?"s":""} · {a.speciality}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  {a.contact && (
+                    <a href={`tel:${a.contact}`} style={{display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:8,background:C.accentGlow,border:`1px solid ${C.dim}`,fontSize:12,color:C.accent,textDecoration:"none",fontWeight:600}}>
+                      <Phone size={12}/> {a.contact}
+                    </a>
+                  )}
+                  <div style={{padding:"4px 12px",borderRadius:100,fontSize:12,fontWeight:700,textTransform:"capitalize",
+                    background:a.status==="available"?"rgba(34,197,94,.1)":"rgba(245,158,11,.1)",
+                    color:a.status==="available"?C.accent:C.warn,
+                    border:`1px solid ${a.status==="available"?"rgba(34,197,94,.3)":"rgba(245,158,11,.3)"}`}}>
+                    {a.status||"available"}
+                  </div>
+                  <select value={a.status||"available"}
+                    onChange={async e=>{ await supabase.from("agencies").update({status:e.target.value}).eq("id",a.id); }}
+                    style={{padding:"5px 8px",borderRadius:7,fontSize:12,border:`1px solid ${C.border}`}}>
+                    {["available","busy","offline"].map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{marginTop:12,fontSize:12,color:C.muted}}>
+                Active dispatches: <b style={{color:C.text}}>{dispatches.filter(d=>d.agency_id===a.id&&d.status!=="completed"&&d.status!=="cancelled").length}</b>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── DISPATCHES TAB ── */}
+      {tab==="dispatches" && (
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div className="heading" style={{fontWeight:700,fontSize:16,color:C.text}}>All Dispatches</div>
+          {dispatches.length===0 ? (
+            <div className="card" style={{padding:40,textAlign:"center",color:C.muted,fontSize:14}}>No dispatches yet. Use AI Recommendations to create one.</div>
+          ) : dispatches.map(d=>(
+            <div key={d.id} className="card" style={{padding:18,borderLeft:`3px solid ${statusColor[d.status]||C.muted}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:14,color:C.text}}>{d.hotspot_name}</div>
+                  <div style={{fontSize:12,color:C.muted,marginTop:2}}>
+                    → {d.agency_name}{d.picker_name?` · Picker: ${d.picker_name}`:""} · {new Date(d.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+                  </div>
+                  {d.reason && <div style={{fontSize:12,color:C.muted,marginTop:4,fontStyle:"italic"}}>"{d.reason}"</div>}
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <div style={{padding:"3px 10px",borderRadius:100,fontSize:12,fontWeight:700,textTransform:"capitalize",
+                    background:`${statusColor[d.status]||C.muted}18`,color:statusColor[d.status]||C.muted,
+                    border:`1px solid ${statusColor[d.status]||C.muted}40`}}>{d.status}</div>
+                  <select value={d.status}
+                    onChange={e=>updateDispatch(d.id,e.target.value)}
+                    style={{padding:"5px 8px",borderRadius:7,fontSize:12,border:`1px solid ${C.border}`}}>
+                    {["pending","en-route","completed","cancelled"].map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── LIVE PICKERS TAB ── */}
+      {tab==="pickers" && (
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div className="heading" style={{fontWeight:700,fontSize:16,color:C.text}}>Live Waste Pickers</div>
+              <div style={{fontSize:12,color:C.muted,marginTop:2}}>Pickers with the "picker" role share their GPS here automatically</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.accent,fontWeight:700}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:C.accent,animation:"pulse 2s infinite"}}/>
+              LIVE · updates every 30s
+            </div>
+          </div>
+
+          {pickers.length===0 ? (
+            <div className="card" style={{padding:40,textAlign:"center"}}>
+              <Navigation size={32} color={C.dim} style={{margin:"0 auto 12px",display:"block"}}/>
+              <div style={{fontWeight:600,fontSize:15,color:C.text,marginBottom:6}}>No pickers online yet</div>
+              <div style={{color:C.muted,fontSize:13}}>When a user with the "picker" role logs in, their location appears here in real time.</div>
+            </div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:14}}>
+              {pickers.map(p=>{
+                const nearest = pickerNearest(p);
+                const isOnline = p.last_seen && (Date.now()-new Date(p.last_seen).getTime()) < 120000;
+                return (
+                  <div key={p.id} className="card" style={{padding:20}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10}}>
+                        <div style={{width:38,height:38,borderRadius:"50%",background:isOnline?"rgba(34,197,94,.12)":"rgba(107,140,120,.1)",border:`1px solid ${isOnline?C.accent:C.dim}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <User size={16} color={isOnline?C.accent:C.muted}/>
+                        </div>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:14,color:C.text}}>{p.name}</div>
+                          <div style={{fontSize:11,color:C.muted,textTransform:"capitalize"}}>{p.speciality||"general"} waste</div>
+                        </div>
+                      </div>
+                      <div style={{padding:"3px 10px",borderRadius:100,fontSize:11,fontWeight:700,
+                        background:isOnline?"rgba(34,197,94,.1)":"rgba(107,140,120,.1)",
+                        color:isOnline?C.accent:C.muted,border:`1px solid ${isOnline?"rgba(34,197,94,.3)":C.dim}`}}>
+                        {isOnline?"● Online":"○ Offline"}
+                      </div>
+                    </div>
+                    {p.lat&&p.lng && (
+                      <div style={{fontSize:12,color:C.muted,marginBottom:8}}>
+                        <Navigation size={11} style={{display:"inline",marginRight:4}}/>{p.lat?.toFixed(4)}, {p.lng?.toFixed(4)}
+                        {nearest && <span style={{marginLeft:8,color:C.blue}}>· {nearest.d}km to {nearest.name}</span>}
+                      </div>
+                    )}
+                    <div style={{fontSize:11,color:C.muted}}>
+                      Last seen: {p.last_seen?new Date(p.last_seen).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}):"unknown"}
+                    </div>
+                    {p.contact && (
+                      <a href={`tel:${p.contact}`} style={{marginTop:10,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:8,background:C.accentGlow,border:`1px solid ${C.dim}`,fontSize:12,color:C.accent,textDecoration:"none",fontWeight:600,width:"fit-content"}}>
+                        <Phone size={11}/> Call
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* How pickers go live — info box */}
+          <div className="card" style={{padding:18,background:"rgba(37,99,235,.04)",borderColor:"rgba(37,99,235,.15)"}}>
+            <div style={{fontWeight:700,fontSize:13,color:C.blue,marginBottom:6}}>How does picker tracking work?</div>
+            <div style={{fontSize:12,color:C.muted,lineHeight:1.7}}>
+              Any user with <b>role = "picker"</b> in the profiles table automatically streams their GPS to the <code>pickers</code> table every 30 seconds when logged in.
+              Set a user's role to "picker" in Supabase → profiles → role column, and they'll appear here live.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── AI RECOMMENDATIONS TAB ── */}
+      {tab==="ai" && (
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div className="heading" style={{fontWeight:700,fontSize:16,color:C.text}}>AI Dispatch Recommendations</div>
+              <div style={{fontSize:12,color:C.muted,marginTop:2}}>Claude analyses hotspots, agencies & live pickers to suggest optimal assignments</div>
+            </div>
+            <button className="btn-primary" style={{padding:"9px 20px",borderRadius:10,fontSize:13,display:"flex",alignItems:"center",gap:7}}
+              onClick={runAiRecommendation} disabled={aiLoading}>
+              {aiLoading?<Spinner size={14}/>:<Star size={14}/>}
+              {aiLoading?"Analysing...":"Run AI Analysis"}
+            </button>
+          </div>
+
+          {/* Context cards */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+            {[
+              {label:"Hotspots needing trucks",value:hotspots.filter(h=>(h.collections_needed||0)>0).length,color:C.danger},
+              {label:"Available agencies",value:agencies.filter(a=>a.status==="available"||!a.status).length,color:C.blue},
+              {label:"Online pickers",value:pickers.filter(p=>p.status==="available").length,color:C.accent},
+            ].map((k,i)=>(
+              <div key={i} className="card" style={{padding:16}}>
+                <div style={{fontSize:12,color:C.muted,marginBottom:4}}>{k.label}</div>
+                <div className="heading" style={{fontSize:28,fontWeight:800,color:k.color}}>{k.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {aiLoading && (
+            <div className="card" style={{padding:40,textAlign:"center"}}>
+              <Spinner size={28}/>
+              <div style={{color:C.muted,fontSize:13,marginTop:12}}>Claude is analysing hotspot urgency, agency availability, and picker proximity…</div>
+            </div>
+          )}
+
+          {!aiLoading && aiRec.length===0 && (
+            <div className="card" style={{padding:40,textAlign:"center"}}>
+              <Star size={32} color={C.dim} style={{margin:"0 auto 12px",display:"block"}}/>
+              <div style={{fontWeight:600,fontSize:15,color:C.text,marginBottom:6}}>No recommendations yet</div>
+              <div style={{color:C.muted,fontSize:13}}>Click "Run AI Analysis" to get instant dispatch suggestions based on live data.</div>
+            </div>
+          )}
+
+          {aiRec.map((rec,i)=>(
+            <div key={i} className="card fade-in" style={{padding:22,borderLeft:`3px solid ${priColor[rec.priority]||C.muted}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                    <div style={{padding:"3px 10px",borderRadius:100,fontSize:11,fontWeight:700,textTransform:"uppercase",
+                      background:`${priColor[rec.priority]||C.muted}18`,color:priColor[rec.priority]||C.muted,
+                      border:`1px solid ${priColor[rec.priority]||C.muted}40`}}>{rec.priority} priority</div>
+                  </div>
+                  <div style={{fontWeight:700,fontSize:15,color:C.text,marginBottom:4}}>{rec.hotspot}</div>
+                  <div style={{fontSize:13,color:C.muted,marginBottom:4}}>
+                    <Truck size={12} style={{display:"inline",marginRight:5}}/><b style={{color:C.text}}>{rec.agency}</b>
+                    {rec.picker && <span style={{marginLeft:10}}><User size={12} style={{display:"inline",marginRight:4}}/><b style={{color:C.blue}}>{rec.picker}</b></span>}
+                  </div>
+                  <div style={{fontSize:12,color:C.muted,fontStyle:"italic"}}>"{rec.reason}"</div>
+                </div>
+                <div style={{display:"flex",gap:8,marginLeft:16}}>
+                  <button className="btn-primary" style={{padding:"8px 16px",borderRadius:9,fontSize:12,display:"flex",alignItems:"center",gap:5}}
+                    onClick={()=>confirmDispatch(rec)}>
+                    <CheckCircle size={13}/> Dispatch
+                  </button>
+                  <button className="btn-ghost" style={{padding:"8px 14px",borderRadius:9,fontSize:12}}
+                    onClick={()=>setAiRec(prev=>prev.filter((_,j)=>j!==i))}>
+                    <X size={13}/>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── PICKER GPS BEACON (runs silently for picker-role users) ──────────────────
+function PickerBeacon({ user }) {
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    let watchId;
+    const push = async (lat, lng) => {
+      await supabase.from("pickers").upsert({
+        id: user.id, name: user.name, contact: user.email,
+        lat, lng, status:"available",
+        speciality: user.speciality||"general",
+        last_seen: new Date().toISOString(),
+      }, { onConflict:"id" });
+    };
+    watchId = navigator.geolocation.watchPosition(
+      pos => push(pos.coords.latitude, pos.coords.longitude),
+      () => {},
+      { enableHighAccuracy:true, timeout:15000, maximumAge:30000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [user.id]);
+  return null; // invisible beacon
+}
+
+
 const sectionTitles = {
   dashboard:"My Dashboard", "admin-dashboard":"Admin Dashboard",
   scanner:"AI Scanner", map:"Waste Map", hotspots:"Waste Hotspots",
   "add-waste":"Add Waste", analytics:"Analytics", schedule:"Collection Schedule",
-  users:"User Management", settings:"Settings",
+  users:"User Management", settings:"Settings", dispatch:"Dispatch Centre",
 };
 
 function AppShell({ user, onLogout }) {
@@ -1993,6 +2449,7 @@ function AppShell({ user, onLogout }) {
       case "scanner":         return <AIScanner user={user}/>;
       case "map":             return <MapView/>;
       case "hotspots":        return <HotspotsPage/>;
+      case "dispatch":        return <DispatchCentre/>;
       case "add-waste":       return <AddWaste user={user}/>;
       case "analytics":       return <Analytics isAdmin={user.role==="admin"} user={user}/>;
       case "schedule":        return <Analytics isAdmin={true} user={user}/>;
@@ -2009,6 +2466,7 @@ function AppShell({ user, onLogout }) {
   };
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#f0fdf4" }}>
+      {user.role==="picker" && <PickerBeacon user={user}/>}
       <Sidebar user={user} activeSection={section} setActiveSection={setSection} onLogout={onLogout}/>
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <TopBar title={sectionTitles[section]||"Verdian"} user={user}/>
