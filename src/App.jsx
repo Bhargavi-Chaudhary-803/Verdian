@@ -1987,6 +1987,7 @@ function DispatchCentre() {
   const [loading, setLoading]       = useState(true);
   const [aiRec, setAiRec]           = useState([]);
   const [aiLoading, setAiLoading]   = useState(false);
+  const [aiError, setAiError]       = useState("");
   const [showAddAgency, setShowAddAgency] = useState(false);
   const [newAgency, setNewAgency]   = useState({ name:"", zone:"", contact:"", vehicles:1, speciality:"general" });
   const [saving, setSaving]         = useState(false);
@@ -2022,7 +2023,7 @@ function DispatchCentre() {
   // ── AI dispatch recommendation via Claude API ────────────────────────────────
   const runAiRecommendation = async () => {
     if (!hotspots.length || !agencies.length) return;
-    setAiLoading(true); setAiRec([]);
+    setAiLoading(true); setAiRec([]); setAiError("");
     const urgentHotspots = hotspots.filter(h=>h.collections_needed>0).slice(0,5);
     const prompt = `You are a municipal waste dispatch AI for Delhi. Given the following waste hotspots needing collection and available agencies, recommend the optimal agency-to-hotspot assignments. Be concise.
 
@@ -2041,18 +2042,30 @@ Respond ONLY with a JSON array (no markdown, no explanation) of objects:
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{
+          "Content-Type":"application/json",
+          "x-api-key":"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",
+          "anthropic-version":"2023-06-01",
+          "anthropic-dangerous-direct-browser-access":"true",
+        },
         body: JSON.stringify({
           model:"claude-sonnet-4-20250514",
           max_tokens:1000,
           messages:[{role:"user",content:prompt}]
         })
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error?.message || `HTTP ${res.status}`);
+      }
       const data = await res.json();
       const text = data.content?.map(c=>c.text||"").join("").replace(/```json|```/g,"").trim();
       const parsed = JSON.parse(text);
       setAiRec(Array.isArray(parsed)?parsed:[]);
-    } catch(e) { setAiRec([]); }
+    } catch(e) {
+      setAiError("AI analysis failed: " + e.message);
+      setAiRec([]);
+    }
     setAiLoading(false);
   };
 
@@ -2358,6 +2371,10 @@ Respond ONLY with a JSON array (no markdown, no explanation) of objects:
               </div>
             ))}
           </div>
+
+          {aiError && (
+            <div className="error-box">{aiError}</div>
+          )}
 
           {aiLoading && (
             <div className="card" style={{padding:40,textAlign:"center"}}>
