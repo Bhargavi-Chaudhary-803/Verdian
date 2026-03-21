@@ -5,7 +5,7 @@ import {
   User, Bell, Upload, CheckCircle, AlertTriangle,
   Recycle, TrendingUp, TrendingDown, Clock, Shield, Users,
   Map, ScanLine, Plus, X, Star, Activity, Download,
-  Home, Radio, Settings, Loader, Award, Zap, RefreshCw
+  Home, Radio, Settings, Loader
 } from "lucide-react";
 
 // ─── Supabase Client ──────────────────────────────────────────────────────────
@@ -23,39 +23,56 @@ const C = {
 };
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
   @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
-  @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-  @keyframes spinSlow { to{transform:rotate(360deg)} }
-  @keyframes dash { to{stroke-dashoffset:0} }
-  @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-  @keyframes glowPulse { 0%,100%{opacity:.4} 50%{opacity:1} }
-  @keyframes countUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes orbitRotate { from{transform:rotate(0deg) translateX(60px) rotate(0deg)} to{transform:rotate(360deg) translateX(60px) rotate(-360deg)} }
-  .float-anim { animation: floatY 4s ease-in-out infinite; }
-  .float-anim-2 { animation: floatY 5s ease-in-out infinite 1s; }
-  .float-anim-3 { animation: floatY 6s ease-in-out infinite 2s; }
-  .shimmer-line { background: linear-gradient(90deg, transparent 0%, rgba(34,197,94,0.4) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 2s linear infinite; }
-  .kpi-card { position:relative; overflow:hidden; transition:transform .2s,box-shadow .2s; }
-  .kpi-card:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(34,197,94,0.15); }
-  .kpi-card::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(34,197,94,0.04) 0%,transparent 60%); pointer-events:none; }
-  .stat-ring { filter:drop-shadow(0 0 6px rgba(34,197,94,0.4)); }
-  .hex-bg { background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 17.3v17.4L30 52 0 34.7V17.3z' fill='none' stroke='rgba(34,197,94,0.06)' stroke-width='1'/%3E%3C/svg%3E"); background-size:60px 52px; }
-  .glow-border { box-shadow: 0 0 0 1px rgba(34,197,94,0.2), 0 4px 20px rgba(34,197,94,0.08); }
   .leaflet-container { border-radius: 12px; }
   .leaflet-popup-content-wrapper { background: #ffffff; border: 1px solid #e2e8f0; color: #1a202c; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
   .leaflet-popup-tip { background: #ffffff; }
-  .leaflet-popup-content { margin: 14px 18px; font-family: 'Inter', sans-serif; }
+  .leaflet-popup-content { margin: 14px 18px; font-family: 'DM Sans', sans-serif; }
   .leaflet-popup-close-button { color: #888 !important; }
   .leaflet-control-zoom a { background: #ffffff !important; color: #16a34a !important; border-color: #d1fae5 !important; font-weight: 700 !important; }
   .leaflet-control-zoom a:hover { background: #f0fdf4 !important; }
-  .leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: #888 !important; font-size: 12px; }
-  .leaflet-control-attribution a { color: #16a34a !important; }
+  .leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: #888 !important; font-size: 10px; }
+  .leaflet-control-attribution a { color: #16a34a !important; }act";
+import { createClient } from "@supabase/supabase-js";
+import {
+  Leaf, Trash2, MapPin, BarChart3, LogOut,
+  User, Bell, Upload, CheckCircle, AlertTriangle,
+  Recycle, TrendingUp, TrendingDown, Clock, Shield, Users,
+  Map, ScanLine, Plus, X, Star, Activity, Download,
+  Home, Radio, Settings, Loader
+} from "lucide-react";
+
+// ─── Supabase Client ──────────────────────────────────────────────────────────
+const supabase = createClient(
+  "https://fhitqdahjiupsehqevta.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaXRxZGFoaml1cHNlaHFldnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMDU5NjgsImV4cCI6MjA4OTY4MTk2OH0.JrqjT_AGvcwDp5l3oAPsMujUrim8zWoLxHtwONXH5h8"
+);
+
+// ─── Color Tokens ─────────────────────────────────────────────────────────────
+const C = {
+  bg: "#0a0f0d", surface: "#111a15", card: "#162019", border: "#1e3028",
+  accent: "#22c55e", accentDim: "#16a34a", accentGlow: "rgba(34,197,94,0.15)",
+  warn: "#f59e0b", danger: "#ef4444", blue: "#3b82f6",
+  text: "#e8f5ee", muted: "#6b8c78", dim: "#2d4a38",
+};
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+  .leaflet-container { border-radius: 12px; }
+  .leaflet-popup-content-wrapper { background: #162019; border: 1px solid #1e3028; color: #e8f5ee; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  .leaflet-popup-tip { background: #162019; }
+  .leaflet-popup-content { margin: 14px 18px; font-family: 'DM Sans', sans-serif; }
+  .leaflet-control-zoom a { background: #162019 !important; color: #22c55e !important; border-color: #1e3028 !important; }
+  .leaflet-control-zoom a:hover { background: #1e3028 !important; }
+  .leaflet-control-attribution { background: rgba(10,15,13,0.8) !important; color: #6b8c78 !important; font-size: 10px; }
+  .leaflet-control-attribution a { color: #22c55e !important; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: ${C.bg}; color: ${C.text}; font-family: 'Inter', sans-serif; }
+  body { background: ${C.bg}; color: ${C.text}; font-family: 'DM Sans', sans-serif; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; }
   ::-webkit-scrollbar-thumb { background: ${C.dim}; border-radius: 2px; }
-  .syne { font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 0.06em; }
+  .syne { font-family: 'Syne', sans-serif; }
   .glow { box-shadow: 0 0 24px ${C.accentGlow}, inset 0 1px 0 rgba(34,197,94,0.1); }
   .glow-sm { box-shadow: 0 0 12px rgba(34,197,94,0.2); }
   .pulse-dot { width:8px;height:8px;background:${C.accent};border-radius:50%;animation:pulse 2s infinite; }
@@ -82,6 +99,7 @@ const css = `
   .error-box { background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:10px 14px;color:${C.danger};font-size:13px; }
   .success-box { background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:10px 14px;color:${C.accent};font-size:13px; }
 `;
+
 // ─── Static data ──────────────────────────────────────────────────────────────
 const wasteCategories = [
   { id: "recyclable", label: "Recyclable", icon: Recycle, color: C.blue, examples: ["Paper","Plastic PET","Glass","Metal cans"] },
@@ -120,293 +138,95 @@ function Spinner({ size = 18 }) {
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
 function LandingPage({ onNavigate }) {
   const [scrolled, setScrolled] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const heroRef = useRef(null);
-
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", h);
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  useEffect(() => {
-    const handler = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", handler);
-    return () => window.removeEventListener("mousemove", handler);
-  }, []);
-
   const stats = [
-    { val:"2.1B",    label:"Tonnes landfilled yearly",  icon:"🌍" },
-    { val:"67%",     label:"Recyclables misclassified",  icon:"♻️" },
-    { val:"₹48K Cr", label:"Recycling value lost",       icon:"💸" },
-    { val:"94%",     label:"Our AI accuracy",             icon:"🤖" },
+    { val:"2.1B",    label:"Tonnes landfilled yearly" },
+    { val:"67%",     label:"Recyclables misclassified" },
+    { val:"₹48K Cr", label:"Recycling value lost" },
+    { val:"94%",     label:"Our AI accuracy" },
+  ];
+
+  const features = [
+    { icon: ScanLine, title:"AI Scanner",       desc:"Snap a photo. Our model classifies waste in under 2 seconds with 94% accuracy." },
+    { icon: Map,      title:"Live Hotspot Map", desc:"Real-time waste accumulation maps help municipalities dispatch trucks efficiently." },
+    { icon: BarChart3,title:"Smart Analytics",  desc:"Track recycling rates, CO₂ savings, and collection schedules on one dashboard." },
+    { icon: Leaf,     title:"Eco Rewards",      desc:"Earn green points for every item correctly classified. Redeem at partner stores." },
   ];
 
   return (
-    <div style={{ minHeight:"100vh", background:"#050a07", overflowX:"hidden", position:"relative" }}>
-      <style>{`
-        @keyframes floatOrb { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-20px) scale(1.05)} 66%{transform:translate(-20px,15px) scale(0.97)} }
-        @keyframes gridFade { from{opacity:0} to{opacity:1} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes glowLine { 0%,100%{opacity:0.3} 50%{opacity:1} }
-        @keyframes rotateHex { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes counterUp { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
-        @keyframes particleDrift { 0%{transform:translateY(0) translateX(0) scale(1);opacity:0.6} 100%{transform:translateY(-120px) translateX(20px) scale(0);opacity:0} }
-        .hero-headline { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both; }
-        .hero-sub { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
-        .hero-cta { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s both; }
-        .stat-item { animation: counterUp 0.6s ease both; }
-        .stat-item:nth-child(1){animation-delay:0.1s} .stat-item:nth-child(2){animation-delay:0.2s}
-        .stat-item:nth-child(3){animation-delay:0.3s} .stat-item:nth-child(4){animation-delay:0.4s}
-        .feature-card { transition: transform 0.3s ease, border-color 0.3s ease; }
-        .feature-card:hover { transform: translateY(-6px); border-color: rgba(34,197,94,0.4) !important; }
-        .feature-card:hover .feat-icon { transform: scale(1.15) rotate(-5deg); }
-        .feat-icon { transition: transform 0.3s ease; }
-        .nav-link { position:relative; color:#6b8c78; font-size:14px; cursor:pointer; text-decoration:none; transition:color 0.2s; }
-        .nav-link:hover { color:#e8f5ee; }
-        .nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:1px; background:#22c55e; transition:width 0.3s; }
-        .nav-link:hover::after { width:100%; }
-        .particle { position:absolute; width:4px; height:4px; border-radius:50%; background:#22c55e; animation: particleDrift 3s ease-out infinite; pointer-events:none; }
-        .glow-btn { position:relative; overflow:hidden; }
-        .glow-btn::before { content:''; position:absolute; inset:-1px; background:linear-gradient(90deg,#22c55e,#4ade80,#22c55e); background-size:200%; animation:shimmer 2s linear infinite; border-radius:inherit; z-index:-1; opacity:0; transition:opacity 0.3s; }
-        .glow-btn:hover::before { opacity:1; }
-        @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
-      `}</style>
-
-      {/* Mouse-following glow */}
-      <div style={{
-        position:"fixed", pointerEvents:"none", zIndex:0,
-        width:700, height:700, borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 65%)",
-        transform:`translate(${mousePos.x - 350}px, ${mousePos.y - 350}px)`,
-        transition:"transform 0.4s ease",
-      }} />
-
-      {/* Animated SVG gradient canvas — behind all hero content */}
-      <div style={{ position:"fixed", inset:0, zIndex:0, pointerEvents:"none", overflow:"hidden" }}>
-        <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <radialGradient id="g1" cx="20%" cy="30%"><stop offset="0%" stopColor="#22c55e" stopOpacity="0.12"/><stop offset="100%" stopColor="#22c55e" stopOpacity="0"/></radialGradient>
-            <radialGradient id="g2" cx="80%" cy="60%"><stop offset="0%" stopColor="#3b82f6" stopOpacity="0.07"/><stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/></radialGradient>
-            <radialGradient id="g3" cx="50%" cy="90%"><stop offset="0%" stopColor="#22c55e" stopOpacity="0.08"/><stop offset="100%" stopColor="#22c55e" stopOpacity="0"/></radialGradient>
-            <filter id="blur1"><feGaussianBlur stdDeviation="40"/></filter>
-          </defs>
-          {/* Soft gradient blobs */}
-          <ellipse cx="200" cy="280" rx="400" ry="300" fill="url(#g1)" filter="url(#blur1)">
-            <animateTransform attributeName="transform" type="translate" values="0,0; 40,-30; -20,20; 0,0" dur="18s" repeatCount="indefinite"/>
-          </ellipse>
-          <ellipse cx="1200" cy="500" rx="380" ry="280" fill="url(#g2)" filter="url(#blur1)">
-            <animateTransform attributeName="transform" type="translate" values="0,0; -50,30; 20,-20; 0,0" dur="22s" repeatCount="indefinite"/>
-          </ellipse>
-          <ellipse cx="720" cy="820" rx="350" ry="200" fill="url(#g3)" filter="url(#blur1)">
-            <animateTransform attributeName="transform" type="translate" values="0,0; 30,-40; -30,20; 0,0" dur="15s" repeatCount="indefinite"/>
-          </ellipse>
-          {/* Dot grid */}
-          {Array.from({length:20}).map((_,row) => Array.from({length:30}).map((_,col) => (
-            <circle key={`${row}-${col}`} cx={col*52+26} cy={row*48+24} r="1" fill="rgba(34,197,94,0.08)"/>
-          )))}
-          {/* Flowing diagonal lines */}
-          {[0,1,2,3].map(i => (
-            <line key={i} x1={-200+i*400} y1="0" x2={600+i*400} y2="900" stroke="rgba(34,197,94,0.04)" strokeWidth="1">
-              <animate attributeName="opacity" values="0.3;0.8;0.3" dur={`${8+i*2}s`} repeatCount="indefinite"/>
-            </line>
-          ))}
-          {/* Top-right accent arc */}
-          <circle cx="1380" cy="60" r="200" fill="none" stroke="rgba(34,197,94,0.06)" strokeWidth="1" strokeDasharray="8 16"/>
-          <circle cx="1380" cy="60" r="140" fill="none" stroke="rgba(34,197,94,0.04)" strokeWidth="1" strokeDasharray="4 12">
-            <animateTransform attributeName="transform" type="rotate" from="0 1380 60" to="360 1380 60" dur="30s" repeatCount="indefinite"/>
-          </circle>
-          {/* Bottom-left accent */}
-          <circle cx="80" cy="840" r="120" fill="none" stroke="rgba(59,130,246,0.05)" strokeWidth="1" strokeDasharray="6 10">
-            <animateTransform attributeName="transform" type="rotate" from="360 80 840" to="0 80 840" dur="25s" repeatCount="indefinite"/>
-          </circle>
-        </svg>
-      </div>
-
-      {/* NAV — responsive */}
-      <style>{`
-        .nav-links { display:flex; align-items:center; gap:32px; }
-        .nav-actions { display:flex; gap:10px; }
-        .nav-hamburger { display:none; background:none; border:none; cursor:pointer; color:#6b8c78; padding:4px; }
-        .nav-mobile-menu { display:none; position:fixed; top:64px; left:0; right:0; zIndex:99; background:rgba(5,10,7,0.97); border-bottom:1px solid rgba(34,197,94,0.12); backdrop-filter:blur(20px); padding:20px 24px; flex-direction:column; gap:16px; }
-        .nav-mobile-menu.open { display:flex; }
-        @media (max-width: 768px) {
-          .nav-links { display:none !important; }
-          .nav-actions { display:none !important; }
-          .nav-hamburger { display:block !important; }
-        }
-      `}</style>
+    <div style={{ minHeight:"100vh", background:C.bg, overflowX:"hidden" }}>
       <nav style={{
         position:"fixed", top:0, left:0, right:0, zIndex:100,
-        padding:"0 clamp(20px, 4vw, 48px)", height:64, display:"flex", alignItems:"center", justifyContent:"space-between",
-        background: scrolled ? "rgba(5,10,7,0.95)" : "transparent",
-        borderBottom: scrolled ? "1px solid rgba(34,197,94,0.1)" : "none",
-        backdropFilter: scrolled ? "blur(20px)" : "none", transition:"all .4s",
+        padding:"16px 40px", display:"flex", alignItems:"center", justifyContent:"space-between",
+        background: scrolled ? "rgba(10,15,13,0.95)" : "transparent",
+        borderBottom: scrolled ? `1px solid ${C.border}` : "none",
+        backdropFilter: scrolled ? "blur(20px)" : "none", transition:"all .3s"
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <svg width="28" height="28" viewBox="0 0 32 32">
-            <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.6"/>
-            <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" fill="rgba(34,197,94,0.1)" stroke="#22c55e" strokeWidth="0.8"/>
-            <circle cx="16" cy="16" r="4" fill="#22c55e" opacity="0.9"/>
-          </svg>
-          <span style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:16, color:"#e8f5ee", letterSpacing:"0.2em" }}>VERDIAN</span>
+          <div style={{ width:36, height:36, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Recycle size={18} color={C.accent} />
+          </div>
+          <span className="syne" style={{ fontWeight:800, fontSize:20, color:C.text }}>VERDIAN</span>
         </div>
-        <div className="nav-links">
-          {["Features","About","Cities"].map(l => (
-            <span key={l} className="nav-link">{l}</span>
-          ))}
+        <div style={{ display:"flex", gap:8 }}>
+          <button className="btn-ghost" style={{ padding:"8px 20px", borderRadius:8, fontSize:14 }} onClick={() => onNavigate("auth")}>Sign In</button>
+          <button className="btn-primary glow-sm" style={{ padding:"8px 20px", borderRadius:8, fontSize:14 }} onClick={() => onNavigate("auth")}>Get Started →</button>
         </div>
-        <div className="nav-actions">
-          <button style={{ padding:"8px 20px", borderRadius:8, background:"transparent", border:"1px solid rgba(34,197,94,0.25)", color:"#6b8c78", cursor:"pointer", fontSize:13, fontFamily:"'Inter',sans-serif", transition:"all .2s" }}
-            onMouseEnter={e=>{e.target.style.borderColor="#22c55e";e.target.style.color="#e8f5ee"}}
-            onMouseLeave={e=>{e.target.style.borderColor="rgba(34,197,94,0.25)";e.target.style.color="#6b8c78"}}
-            onClick={() => onNavigate("auth")}>Sign in</button>
-          <button className="glow-btn" style={{ padding:"8px 20px", borderRadius:8, background:"#22c55e", border:"none", color:"#050a07", cursor:"pointer", fontSize:13, fontFamily:"'Inter',sans-serif", fontWeight:700 }}
-            onClick={() => onNavigate("auth")}>Get started →</button>
-        </div>
-        <button className="nav-hamburger" onClick={() => setMobileMenu(m => !m)}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
       </nav>
-      {/* Mobile menu */}
-      <div className={`nav-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ zIndex:99 }}>
-        {["Features","About","Cities"].map(l => (
-          <span key={l} style={{ fontSize:15, color:"#a0b8a8", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>{l}</span>
-        ))}
-        <div style={{ borderTop:"1px solid rgba(34,197,94,0.1)", paddingTop:12, display:"flex", flexDirection:"column", gap:10 }}>
-          <button style={{ padding:"10px 0", borderRadius:8, background:"transparent", border:"1px solid rgba(34,197,94,0.25)", color:"#6b8c78", cursor:"pointer", fontSize:14, fontFamily:"'Inter',sans-serif" }}
-            onClick={() => onNavigate("auth")}>Sign in</button>
-          <button style={{ padding:"10px 0", borderRadius:8, background:"#22c55e", border:"none", color:"#050a07", cursor:"pointer", fontSize:14, fontFamily:"'Inter',sans-serif", fontWeight:700 }}
-            onClick={() => onNavigate("auth")}>Get started →</button>
-        </div>
-      </div>
 
-      {/* HERO */}
-      <div ref={heroRef} style={{ position:"relative", zIndex:1, paddingTop:160, paddingBottom:100, textAlign:"center", maxWidth:900, margin:"0 auto", padding:"160px 32px 100px" }}>
-
-        {/* Pill badge */}
-        <div className="hero-headline" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:100, background:"rgba(34,197,94,0.07)", border:"1px solid rgba(34,197,94,0.2)", marginBottom:32 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", boxShadow:"0 0 8px #22c55e", animation:"pulse 2s infinite" }} />
-          <span style={{ fontSize:12, color:"#22c55e", fontWeight:600, letterSpacing:"0.05em" }}>AI-POWERED WASTE INTELLIGENCE</span>
-        </div>
-
-        {/* Main headline */}
-        <h1 className="hero-headline" style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:"clamp(36px,5vw,66px)", lineHeight:1.12, letterSpacing:"0.02em", color:"#e8f5ee", marginBottom:24 }}>
-          Cities waste less<br />
-          <span style={{ background:"linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #86efac 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>when they see clearly.</span>
-        </h1>
-
-        <p className="hero-sub" style={{ fontSize:17, color:"#6b8c78", maxWidth:520, margin:"0 auto 48px", lineHeight:1.75 }}>
-          Verdian classifies waste in seconds using AI, maps hotspots in real-time, and guides every citizen toward a circular economy.
-        </p>
-
-        <div className="hero-cta" style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-          <button className="glow-btn" style={{ padding:"14px 36px", borderRadius:12, background:"#22c55e", border:"none", color:"#050a07", fontSize:15, fontFamily:"'Orbitron',sans-serif", fontWeight:700, cursor:"pointer", letterSpacing:"-0.01em" }}
-            onClick={() => onNavigate("auth")}>
-            Start for free →
-          </button>
-          <button style={{ padding:"14px 36px", borderRadius:12, background:"transparent", border:"1px solid rgba(255,255,255,0.08)", color:"#a0b8a8", fontSize:15, fontFamily:"'Inter',sans-serif", cursor:"pointer", transition:"all .2s" }}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(34,197,94,0.3)";e.currentTarget.style.color="#e8f5ee"}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.08)";e.currentTarget.style.color="#a0b8a8"}}
-            onClick={() => onNavigate("auth")}>
-            View admin demo
-          </button>
-        </div>
-
-        {/* Decorative UI preview card */}
-        <div style={{ marginTop:72, position:"relative" }}>
-          {/* Glow behind card */}
-          <div style={{ position:"absolute", bottom:-40, left:"50%", transform:"translateX(-50%)", width:"70%", height:60, background:"radial-gradient(ellipse, rgba(34,197,94,0.2) 0%, transparent 70%)", filter:"blur(20px)" }} />
-          <div style={{ borderRadius:20, border:"1px solid rgba(34,197,94,0.12)", background:"rgba(10,20,14,0.8)", backdropFilter:"blur(20px)", padding:24, textAlign:"left", maxWidth:700, margin:"0 auto", boxShadow:"0 40px 80px rgba(0,0,0,0.5)" }}>
-            {/* Window chrome */}
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20 }}>
-              {["#ef4444","#f59e0b","#22c55e"].map((c,i)=>(
-                <div key={i} style={{ width:10, height:10, borderRadius:"50%", background:c, opacity:0.7 }} />
-              ))}
-              <div style={{ flex:1, height:20, borderRadius:6, background:"rgba(255,255,255,0.04)", marginLeft:8, display:"flex", alignItems:"center", paddingLeft:10 }}>
-                <span style={{ fontSize:12, color:"#2d4a38" }}>verdian.ai/dashboard</span>
-              </div>
-            </div>
-            {/* Mini dashboard preview */}
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:12 }}>
-              {[["♻️ Recyclable","38%","#3b82f6"],["🌿 Organic","42%","#22c55e"],["⚠️ Hazardous","8%","#ef4444"]].map(([l,v,c],i)=>(
-                <div key={i} style={{ padding:"12px 14px", borderRadius:10, background:`${c}08`, border:`1px solid ${c}20` }}>
-                  <div style={{ fontSize:12, color:"#6b8c78", marginBottom:6 }}>{l}</div>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:800, fontSize:22, color:c, letterSpacing:"-0.03em" }}>{v}</div>
-                  <div style={{ marginTop:6, height:3, borderRadius:2, background:`${c}20` }}>
-                    <div style={{ height:"100%", width:v, background:c, borderRadius:2 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ padding:"12px 16px", borderRadius:10, background:"rgba(34,197,94,0.05)", border:"1px solid rgba(34,197,94,0.1)", display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ width:32, height:32, borderRadius:8, background:"rgba(34,197,94,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                <div style={{ fontSize:16 }}>🤖</div>
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:12, color:"#6b8c78" }}>AI Classification</div>
-                <div style={{ fontSize:13, color:"#e8f5ee", fontWeight:600 }}>Plastic PET Bottle → Recyclable ✓</div>
-              </div>
-              <div style={{ padding:"3px 10px", borderRadius:100, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.2)", fontSize:12, color:"#22c55e", fontWeight:700, flexShrink:0 }}>94% conf.</div>
-            </div>
+      <div style={{ paddingTop:120, paddingBottom:80, textAlign:"center", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-100, left:"50%", transform:"translateX(-50%)", width:600, height:600, background:"radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)", pointerEvents:"none" }} />
+        <div className="fade-in" style={{ maxWidth:800, margin:"0 auto", padding:"0 24px" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:100, background:C.accentGlow, border:`1px solid ${C.dim}`, marginBottom:24 }}>
+            <div className="pulse-dot" />
+            <span style={{ fontSize:12, color:C.accent, fontWeight:500 }}>AI-Powered Waste Intelligence Platform</span>
+          </div>
+          <h1 className="syne" style={{ fontSize:"clamp(40px,7vw,80px)", fontWeight:800, lineHeight:1.05, marginBottom:24, color:C.text }}>
+            Smarter Waste.<br /><span style={{ color:C.accent }}>Greener Cities.</span>
+          </h1>
+          <p style={{ fontSize:18, color:C.muted, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
+            Verdian uses computer vision and real-time analytics to classify waste, guide citizens, and optimize municipal collection routes — reducing landfill burden by up to 40%.
+          </p>
+          <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+            <button className="btn-primary glow-sm" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Start Scanning Free</button>
+            <button className="btn-ghost" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Admin Demo →</button>
           </div>
         </div>
       </div>
 
-      {/* STATS STRIP */}
-      <div style={{ position:"relative", zIndex:1, borderTop:"1px solid rgba(34,197,94,0.06)", borderBottom:"1px solid rgba(34,197,94,0.06)", padding:"48px 48px" }}>
-        <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:0 }}>
+      <div style={{ padding:"40px", borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
           {stats.map((s,i) => (
-            <div key={i} className="stat-item" style={{ textAlign:"center", padding:"0 24px", borderRight: i < 3 ? "1px solid rgba(34,197,94,0.08)" : "none" }}>
-              <div style={{ fontSize:28, marginBottom:8 }}>{s.icon}</div>
-              <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:800, fontSize:34, color:"#22c55e", letterSpacing:"-0.04em", lineHeight:1 }}>{s.val}</div>
-              <div style={{ fontSize:12, color:"#6b8c78", marginTop:6, lineHeight:1.5 }}>{s.label}</div>
+            <div key={i} style={{ textAlign:"center" }}>
+              <div className="syne" style={{ fontSize:36, fontWeight:800, color:C.accent }}>{s.val}</div>
+              <div style={{ fontSize:13, color:C.muted, marginTop:4 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* FEATURES */}
-      <div style={{ position:"relative", zIndex:1, padding:"96px 48px" }}>
-        <div style={{ maxWidth:960, margin:"0 auto" }}>
-          {/* Section label */}
-          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-            <div style={{ height:1, flex:1, background:"linear-gradient(90deg, transparent, rgba(34,197,94,0.3))" }} />
-            <span style={{ fontSize:12, color:"#22c55e", fontWeight:700, letterSpacing:"0.12em" }}>CAPABILITIES</span>
-            <div style={{ height:1, flex:1, background:"linear-gradient(90deg, rgba(34,197,94,0.3), transparent)" }} />
+      <div style={{ padding:"80px 40px" }}>
+        <div style={{ maxWidth:900, margin:"0 auto" }}>
+          <div style={{ textAlign:"center", marginBottom:48 }}>
+            <h2 className="syne" style={{ fontSize:36, fontWeight:800, color:C.text }}>Everything in one platform</h2>
+            <p style={{ color:C.muted, marginTop:12 }}>Built for citizens and city managers alike</p>
           </div>
-          <h2 style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:800, fontSize:"clamp(28px,3.5vw,44px)", letterSpacing:"-0.03em", color:"#e8f5ee", textAlign:"center", marginBottom:12 }}>
-            One platform.<br/>Every waste workflow.
-          </h2>
-          <p style={{ color:"#6b8c78", textAlign:"center", fontSize:15, marginBottom:64, lineHeight:1.7 }}>
-            Built for citizens who care, and municipalities who need to act fast.
-          </p>
-
           <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
-            {[
-              { icon:"AI", title:"AI Waste Classifier", desc:"Upload a photo or type a description. Our model returns category, confidence score, bin color, and disposal instructions in under 2 seconds.", tag:"94% accuracy", color:"#22c55e" },
-              { icon:"MAP", title:"Live Hotspot Map", desc:"Interactive Leaflet map overlays municipal hotspots and citizen-logged waste pins. Filter by priority. Dispatch trucks from the admin panel.", tag:"Real-time", color:"#3b82f6" },
-              { icon:"CHART", title:"Smart Analytics", desc:"Track recycling rates, CO₂ savings, weekly collection volume and category breakdowns. Full leaderboard for citizen gamification.", tag:"Live data", color:"#f59e0b" },
-              { icon:"PIN", title:"Geo-tagged Logging", desc:"Log waste items with GPS coordinates. Every logged item appears as a pin on the city map — giving municipalities precise data on waste origins.", tag:"GPS-enabled", color:"#8b5cf6" },
-            ].map((f,i) => (
-              <div key={i} className="feature-card" style={{ padding:32, borderRadius:20, background:"rgba(10,18,12,0.6)", border:"1px solid rgba(34,197,94,0.08)", backdropFilter:"blur(10px)", cursor:"pointer" }}>
-                <div style={{ display:"flex", alignItems:"flex-start", gap:20 }}>
-                  <div className="feat-icon" style={{ width:52, height:52, borderRadius:14, background:`${f.color}10`, border:`1px solid ${f.color}20`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    {f.icon === "AI" && <ScanLine size={22} color={f.color}/>}
-                    {f.icon === "MAP" && <MapPin size={22} color={f.color}/>}
-                    {f.icon === "CHART" && <BarChart3 size={22} color={f.color}/>}
-                    {f.icon === "PIN" && <Map size={22} color={f.color}/>}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                      <span style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:16, color:"#e8f5ee" }}>{f.title}</span>
-                      <span style={{ fontSize:12, padding:"2px 8px", borderRadius:100, background:`${f.color}12`, border:`1px solid ${f.color}25`, color:f.color, fontWeight:700, letterSpacing:"0.05em" }}>{f.tag}</span>
-                    </div>
-                    <p style={{ fontSize:13, color:"#6b8c78", lineHeight:1.7, margin:0 }}>{f.desc}</p>
-                  </div>
+            {features.map((f,i) => (
+              <div key={i} className="card" style={{ padding:28, display:"flex", gap:18, alignItems:"flex-start", cursor:"pointer", transition:"all .2s" }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                <div style={{ width:44, height:44, borderRadius:12, background:C.accentGlow, border:`1px solid ${C.dim}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <f.icon size={20} color={C.accent} />
+                </div>
+                <div>
+                  <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text, marginBottom:6 }}>{f.title}</div>
+                  <div style={{ color:C.muted, fontSize:14, lineHeight:1.6 }}>{f.desc}</div>
                 </div>
               </div>
             ))}
@@ -414,54 +234,16 @@ function LandingPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* CITIES */}
-      <div style={{ position:"relative", zIndex:1, padding:"0 48px 80px" }}>
-        <div style={{ maxWidth:960, margin:"0 auto", textAlign:"center" }}>
-          <div style={{ padding:"32px", borderRadius:20, background:"rgba(34,197,94,0.03)", border:"1px solid rgba(34,197,94,0.08)" }}>
-            <p style={{ fontSize:12, color:"#2d4a38", fontWeight:700, letterSpacing:"0.1em", marginBottom:16 }}>ACTIVE IN</p>
-            <div style={{ display:"flex", gap:24, justifyContent:"center", flexWrap:"wrap" }}>
-              {["Delhi","Mumbai","Bengaluru","Hyderabad","Chennai"].map((c,i) => (
-                <span key={i} style={{ fontSize:14, color:"#6b8c78", fontWeight:500 }}>{c}</span>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div style={{ padding:"60px 40px", textAlign:"center", borderTop:`1px solid ${C.border}` }}>
+        <h2 className="syne" style={{ fontSize:32, fontWeight:800, color:C.text, marginBottom:16 }}>Join eco-conscious users</h2>
+        <p style={{ color:C.muted, marginBottom:32 }}>Delhi · Mumbai · Bengaluru · Hyderabad · Chennai</p>
+        <button className="btn-primary glow" style={{ padding:"16px 40px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>
+          Get Started — It's Free
+        </button>
       </div>
 
-      {/* CTA SECTION */}
-      <div style={{ position:"relative", zIndex:1, padding:"80px 48px 100px", textAlign:"center" }}>
-        <div style={{ maxWidth:600, margin:"0 auto" }}>
-          <div style={{ position:"relative", padding:"60px 40px", borderRadius:24, overflow:"hidden", background:"linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(10,20,14,0.9) 100%)", border:"1px solid rgba(34,197,94,0.15)" }}>
-            {/* Corner decoration */}
-            <svg style={{ position:"absolute", top:0, right:0, opacity:0.15 }} width="200" height="200" viewBox="0 0 200 200">
-              <circle cx="180" cy="20" r="80" fill="none" stroke="#22c55e" strokeWidth="0.5"/>
-              <circle cx="180" cy="20" r="50" fill="none" stroke="#22c55e" strokeWidth="0.5"/>
-              <circle cx="180" cy="20" r="25" fill="rgba(34,197,94,0.1)" stroke="#22c55e" strokeWidth="1"/>
-            </svg>
-            <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:800, fontSize:"clamp(24px,3vw,36px)", color:"#e8f5ee", letterSpacing:"-0.03em", marginBottom:12, lineHeight:1.15 }}>
-              Ready to make your<br />city cleaner?
-            </div>
-            <p style={{ color:"#6b8c78", marginBottom:32, fontSize:15, lineHeight:1.6 }}>
-              Join thousands of citizens turning waste knowledge into environmental action.
-            </p>
-            <button className="glow-btn" style={{ padding:"16px 44px", borderRadius:14, background:"#22c55e", border:"none", color:"#050a07", fontSize:16, fontFamily:"'Orbitron',sans-serif", fontWeight:700, cursor:"pointer", letterSpacing:"-0.01em" }}
-              onClick={() => onNavigate("auth")}>
-              Get started free →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <div style={{ position:"relative", zIndex:1, borderTop:"1px solid rgba(34,197,94,0.06)", padding:"24px 48px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <svg width="20" height="20" viewBox="0 0 32 32">
-            <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.5"/>
-            <circle cx="16" cy="16" r="3" fill="#22c55e" opacity="0.7"/>
-          </svg>
-          <span style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:13, color:"#2d4a38", letterSpacing:"0.2em", fontFamily:"'Orbitron',sans-serif" }}>VERDIAN</span>
-        </div>
-        <span style={{ fontSize:12, color:"#2d4a38" }}>© 2026 Verdian. Smart Waste Intelligence.</span>
+      <div style={{ padding:"20px 40px", textAlign:"center", borderTop:`1px solid ${C.border}`, color:C.muted, fontSize:12 }}>
+        © 2026 Verdian. Smart Waste Intelligence.
       </div>
     </div>
   );
@@ -514,7 +296,7 @@ function AuthPage({ onLogin }) {
           <div style={{ width:40, height:40, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Recycle size={20} color={C.accent} />
           </div>
-          <span className="syne" style={{ fontWeight:700, fontSize:22, color:C.text, letterSpacing:"0.2em", fontFamily:"'Orbitron',sans-serif" }}>VERDIAN</span>
+          <span className="syne" style={{ fontWeight:800, fontSize:24, color:C.text }}>VERDIAN</span>
         </div>
 
         <div className="card" style={{ padding:36 }}>
@@ -529,7 +311,7 @@ function AuthPage({ onLogin }) {
             <div style={{ display:"flex", background:C.surface, borderRadius:10, padding:4, marginBottom:20, border:`1px solid ${C.border}` }}>
               {["user","admin"].map(r => (
                 <button key={r} onClick={() => setRole(r)}
-                  style={{ flex:1, padding:"8px 0", borderRadius:8, border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:13, transition:"all .2s",
+                  style={{ flex:1, padding:"8px 0", borderRadius:8, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:13, transition:"all .2s",
                     background: role === r ? C.accent : "transparent", color: role === r ? "#0a0f0d" : C.muted }}>
                   {r === "user" ? "🌿 Citizen" : "🏛️ Admin"}
                 </button>
@@ -582,401 +364,182 @@ function AuthPage({ onLogin }) {
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 function Sidebar({ user, activeSection, setActiveSection, onLogout }) {
   const userLinks  = [
-    { id:"dashboard",   icon:Home,     label:"Dashboard",   color:"#22c55e" },
-    { id:"scanner",     icon:ScanLine, label:"AI Scanner",  color:"#3b82f6" },
-    { id:"map",         icon:Map,      label:"Waste Map",   color:"#22c55e" },
-    { id:"hotspots",    icon:Radio,    label:"Hotspots",    color:"#ef4444" },
-    { id:"add-waste",   icon:Plus,     label:"Add Waste",   color:"#f59e0b" },
-    { id:"analytics",   icon:BarChart3,label:"Analytics",   color:"#22c55e" },
+    { id:"dashboard",   icon:Home,     label:"Dashboard" },
+    { id:"scanner",     icon:ScanLine, label:"AI Scanner" },
+    { id:"map",         icon:Map,      label:"Waste Map" },
+    { id:"hotspots",    icon:Radio,    label:"Hotspots" },
+    { id:"add-waste",   icon:Plus,     label:"Add Waste" },
+    { id:"analytics",   icon:BarChart3,label:"Analytics" },
   ];
   const adminLinks = [
-    { id:"admin-dashboard", icon:Shield,    label:"Admin Overview", color:"#ef4444" },
-    { id:"map",             icon:Map,       label:"City Map",       color:"#22c55e" },
-    { id:"hotspots",        icon:Radio,     label:"Hotspots",       color:"#ef4444" },
-    { id:"schedule",        icon:Clock,     label:"Schedule",       color:"#f59e0b" },
-    { id:"analytics",       icon:BarChart3, label:"Analytics",      color:"#22c55e" },
-    { id:"users",           icon:Users,     label:"Users",          color:"#3b82f6" },
+    { id:"admin-dashboard", icon:Shield,    label:"Admin Overview" },
+    { id:"map",             icon:Map,       label:"City Map" },
+    { id:"hotspots",        icon:Radio,     label:"Hotspots" },
+    { id:"schedule",        icon:Clock,     label:"Schedule" },
+    { id:"analytics",       icon:BarChart3, label:"Analytics" },
+    { id:"users",           icon:Users,     label:"Users" },
   ];
   const links = user.role === "admin" ? adminLinks : userLinks;
 
   return (
-    <div style={{ width:230, minHeight:"100vh", background:"#0a0f0d", borderRight:"1px solid #1e3028", display:"flex", flexDirection:"column", padding:"0 0 20px", flexShrink:0, position:"relative", overflow:"hidden" }}>
-      {/* Sidebar background graphic */}
-      <div style={{ position:"absolute", bottom:-60, left:-60, width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%)", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", top:80, right:-40, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(34,197,94,0.04) 0%, transparent 70%)", pointerEvents:"none" }} />
-
-      {/* Logo area */}
-      <div style={{ padding:"20px 18px 16px", borderBottom:"1px solid #1e3028" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ position:"relative", width:34, height:34, flexShrink:0 }}>
-            <svg width="34" height="34" viewBox="0 0 34 34">
-              <circle cx="17" cy="17" r="16" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.2)" strokeWidth="1" />
-              <circle cx="17" cy="17" r="16" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeDasharray="25 76" strokeLinecap="round"
-                style={{animation:"spinSlow 8s linear infinite", transformOrigin:"17px 17px"}} />
-              <text x="17" y="21" textAnchor="middle" fontSize="12" fill="#22c55e">♻</text>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:15, color:"#e8f5ee", letterSpacing:"0.2em", fontFamily:"'Orbitron',sans-serif" }}>VERDIAN</div>
-            <div style={{ fontSize:12, color:"#2d4a38", fontWeight:600, textTransform:"uppercase", letterSpacing:1 }}>Waste Intelligence</div>
-          </div>
+    <div style={{ width:220, minHeight:"100vh", background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column", padding:"20px 12px", flexShrink:0 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, padding:"0 6px", marginBottom:32 }}>
+        <div style={{ width:32, height:32, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <Recycle size={15} color={C.accent} />
         </div>
+        <span className="syne" style={{ fontWeight:800, fontSize:17, color:C.text }}>VERDIAN</span>
       </div>
 
-      {/* User card */}
-      <div style={{ margin:"12px 12px 8px", padding:"12px 14px", borderRadius:12,
-        background: user.role==="admin" ? "rgba(239,68,68,0.06)" : "rgba(34,197,94,0.06)",
-        border:`1px solid ${user.role==="admin" ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)"}`,
-        position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", right:-10, top:-10, width:50, height:50, borderRadius:"50%", background: user.role==="admin" ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)" }} />
-        <div style={{ fontSize:12, color: user.role==="admin" ? "#ef4444" : "#22c55e", fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>
-          {user.role==="admin" ? "🏛️ Admin" : "🌿 Citizen"}
+      <div style={{ padding:"6px 12px", borderRadius:8, background: user.role === "admin" ? "rgba(239,68,68,.1)" : C.accentGlow, border:`1px solid ${user.role === "admin" ? "rgba(239,68,68,.3)" : C.dim}`, marginBottom:20 }}>
+        <div style={{ fontSize:10, color: user.role === "admin" ? C.danger : C.accent, fontWeight:600, textTransform:"uppercase", letterSpacing:1 }}>
+          {user.role === "admin" ? "🏛️ Admin" : "🌿 Citizen"}
         </div>
-        <div style={{ fontSize:13, color:"#e8f5ee", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.name}</div>
-        <div style={{ fontSize:12, color:"#6b8c78", marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.email}</div>
+        <div style={{ fontSize:12, color:C.text, marginTop:2, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.name}</div>
       </div>
 
-      {/* Nav section label */}
-      <div style={{ padding:"8px 18px 4px" }}>
-        <div style={{ fontSize:12, color:"#2d4a38", fontWeight:700, textTransform:"uppercase", letterSpacing:1.5 }}>Navigation</div>
-      </div>
-
-      <nav style={{ flex:1, display:"flex", flexDirection:"column", gap:2, padding:"0 10px" }}>
-        {links.map(l => {
-          const isActive = activeSection === l.id;
-          return (
-            <div key={l.id}
-              onClick={() => setActiveSection(l.id)}
-              style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:10,
-                cursor:"pointer", fontSize:13, fontWeight: isActive ? 600 : 400,
-                color: isActive ? l.color : "#6b8c78",
-                background: isActive ? `${l.color}12` : "transparent",
-                border: isActive ? `1px solid ${l.color}25` : "1px solid transparent",
-                transition:"all .15s", position:"relative", overflow:"hidden" }}>
-              {isActive && <div style={{ position:"absolute", left:0, top:"20%", bottom:"20%", width:3, borderRadius:"0 2px 2px 0", background:l.color }} />}
-              <l.icon size={15} color={isActive ? l.color : "#6b8c78"} />
-              <span>{l.label}</span>
-              {isActive && <div style={{ marginLeft:"auto", width:6, height:6, borderRadius:"50%", background:l.color, boxShadow:`0 0 6px ${l.color}` }} />}
-            </div>
-          );
-        })}
+      <nav style={{ flex:1, display:"flex", flexDirection:"column", gap:2 }}>
+        {links.map(l => (
+          <div key={l.id} className={`sidebar-link ${activeSection === l.id ? "active" : ""}`} onClick={() => setActiveSection(l.id)}>
+            <l.icon size={16} /><span>{l.label}</span>
+          </div>
+        ))}
       </nav>
 
-      {/* Bottom mini graphic — recycling rings */}
-      <div style={{ margin:"8px 12px 12px", padding:14, borderRadius:12, background:"rgba(34,197,94,0.04)", border:"1px solid rgba(34,197,94,0.08)", textAlign:"center" }}>
-        <svg width="48" height="48" viewBox="0 0 48 48" style={{ margin:"0 auto 8px", display:"block" }}>
-          <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(34,197,94,0.1)" strokeWidth="3" />
-          <circle cx="24" cy="24" r="20" fill="none" stroke="#22c55e" strokeWidth="3"
-            strokeDasharray={`${((user.green_points||0)/500)*125} 125`}
-            strokeLinecap="round" strokeDashoffset="-31"
-            style={{transform:"rotate(-90deg)", transformOrigin:"24px 24px", transition:"stroke-dasharray 1s ease"}} />
-          <text x="24" y="27" textAnchor="middle" fontSize="10" fontWeight="700" fill="#22c55e" fontFamily="'Quicksand',sans-serif">
-            {user.green_points||0}
-          </text>
-          <text x="24" y="36" textAnchor="middle" fontSize="6" fill="#6b8c78">pts</text>
-        </svg>
-        <div style={{ fontSize:12, color:"#6b8c78" }}>Green Points</div>
-      </div>
-
-      <div style={{ padding:"0 10px", display:"flex", flexDirection:"column", gap:2 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:10, cursor:"pointer", fontSize:13, color:"#6b8c78", border:"1px solid transparent", transition:"all .15s" }}
-          onMouseEnter={e=>{e.currentTarget.style.color="#e8f5ee";e.currentTarget.style.borderColor="#1e3028"}}
-          onMouseLeave={e=>{e.currentTarget.style.color="#6b8c78";e.currentTarget.style.borderColor="transparent"}}
-          onClick={() => setActiveSection("settings")}>
-          <Settings size={15} /><span>Settings</span>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:10, cursor:"pointer", fontSize:13, color:"#ef4444", border:"1px solid transparent", transition:"all .15s" }}
-          onMouseEnter={e=>{e.currentTarget.style.background="rgba(239,68,68,0.08)";e.currentTarget.style.borderColor="rgba(239,68,68,0.2)"}}
-          onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor="transparent"}}
-          onClick={onLogout}>
-          <LogOut size={15} /><span>Sign Out</span>
-        </div>
+      <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:12, marginTop:12, display:"flex", flexDirection:"column", gap:2 }}>
+        <div className="sidebar-link" onClick={() => setActiveSection("settings")}><Settings size={16} /><span>Settings</span></div>
+        <div className="sidebar-link" style={{ color:C.danger }} onClick={onLogout}><LogOut size={16} /><span>Sign Out</span></div>
       </div>
     </div>
   );
 }
+
 // ─── TOP BAR ──────────────────────────────────────────────────────────────────
 function TopBar({ title, user }) {
-  const now = new Date();
-  const hour = now.getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const timeStr = now.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
-
   return (
-    <div style={{ height:64, background:"rgba(10,15,13,0.95)", borderBottom:"1px solid #1e3028", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", flexShrink:0, backdropFilter:"blur(12px)", position:"relative", overflow:"hidden" }}>
-      {/* Subtle shimmer line at bottom */}
-      <div style={{ position:"absolute", bottom:0, left:0, right:0, height:1 }} className="shimmer-line" />
-
-      <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-        <div>
-          <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:17, color:"#e8f5ee", letterSpacing:"-0.02em" }}>{title}</div>
-          <div style={{ fontSize:12, color:"#2d4a38" }}>
-            {now.toLocaleDateString("en-IN", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}
-          </div>
+    <div style={{ height:60, background:C.surface, borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", flexShrink:0 }}>
+      <div>
+        <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text }}>{title}</div>
+        <div style={{ fontSize:11, color:C.muted }}>
+          {new Date().toLocaleDateString("en-IN", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}
         </div>
       </div>
-
-      <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-        {/* Live clock */}
-        <div style={{ padding:"5px 12px", borderRadius:8, background:"rgba(34,197,94,0.06)", border:"1px solid rgba(34,197,94,0.12)", display:"flex", alignItems:"center", gap:6 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", boxShadow:"0 0 6px #22c55e" }} />
-          <span style={{ fontSize:12, color:"#22c55e", fontWeight:600, fontFamily:"monospace" }}>{timeStr}</span>
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ position:"relative", cursor:"pointer" }}>
+          <Bell size={18} color={C.muted} />
         </div>
-
-        {/* Notification bell */}
-        <div style={{ position:"relative", cursor:"pointer", width:36, height:36, borderRadius:10, border:"1px solid #1e3028", background:"rgba(34,197,94,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all .2s" }}
-          onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(34,197,94,0.3)"}}
-          onMouseLeave={e=>{e.currentTarget.style.borderColor="#1e3028"}}>
-          <Bell size={15} color="#6b8c78" />
-          <div style={{ position:"absolute", top:7, right:7, width:6, height:6, background:"#ef4444", borderRadius:"50%", border:"1px solid #0a0f0d", boxShadow:"0 0 4px #ef4444" }} />
-        </div>
-
-        {/* Avatar */}
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 12px 6px 6px", borderRadius:10, border:"1px solid #1e3028", background:"rgba(34,197,94,0.04)", cursor:"pointer", transition:"all .2s" }}
-          onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(34,197,94,0.2)"}}
-          onMouseLeave={e=>{e.currentTarget.style.borderColor="#1e3028"}}>
-          <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,rgba(34,197,94,0.3),rgba(34,197,94,0.1))", border:"1px solid rgba(34,197,94,0.3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <User size={14} color="#22c55e" />
-          </div>
-          <div>
-            <div style={{ fontSize:12, color:"#e8f5ee", fontWeight:600, lineHeight:1.2 }}>{user.name?.split(" ")[0]}</div>
-            <div style={{ fontSize:12, color:"#6b8c78", textTransform:"capitalize" }}>{user.role}</div>
-          </div>
+        <div style={{ width:36, height:36, borderRadius:"50%", background:C.accentGlow, border:`1px solid ${C.dim}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <User size={16} color={C.accent} />
         </div>
       </div>
     </div>
   );
 }
+
 // ─── USER DASHBOARD ───────────────────────────────────────────────────────────
 function UserDashboard({ user }) {
   const [logs,    setLogs]    = useState([]);
   const [profile, setProfile] = useState(user);
   const [loading, setLoading] = useState(true);
   const [rank,    setRank]    = useState(null);
-  const [tick,    setTick]    = useState(0);
-
-  const loadData = async () => {
-    const { data: logsData } = await supabase.from("waste_logs").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
-    setLogs(logsData || []);
-    const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-    if (prof) setProfile(p => ({ ...p, ...prof }));
-    const { count } = await supabase.from("profiles").select("*", { count:"exact", head:true }).gt("green_points", prof?.green_points || 0);
-    setRank((count || 0) + 1);
-    setLoading(false);
-  };
 
   useEffect(() => {
-    setLoading(true);
-    loadData();
+    const load = async () => {
+      setLoading(true);
+      // Recent logs
+      const { data: logsData } = await supabase
+        .from("waste_logs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      setLogs(logsData || []);
 
-    // Realtime: re-fetch when waste_logs changes for this user
-    const logsSub = supabase.channel("dashboard-logs-" + user.id)
-      .on("postgres_changes", { event: "*", schema: "public", table: "waste_logs", filter: `user_id=eq.${user.id}` },
-        () => loadData())
-      .subscribe();
+      // Profile stats
+      const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (prof) setProfile({ ...user, ...prof });
 
-    // Realtime: re-fetch when profile changes
-    const profSub = supabase.channel("dashboard-profile-" + user.id)
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        () => loadData())
-      .subscribe();
+      // Rank: how many users have more points
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count:"exact", head:true })
+        .gt("green_points", prof?.green_points || 0);
+      setRank((count || 0) + 1);
 
-    return () => { supabase.removeChannel(logsSub); supabase.removeChannel(profSub); };
+      setLoading(false);
+    };
+    load();
   }, [user.id]);
 
-  // Animate tick for SVG rings
-  useEffect(() => { const t = setTimeout(() => setTick(1), 200); return () => clearTimeout(t); }, [loading]);
-
-  const catColor = { recyclable:"#3b82f6", organic:"#22c55e", hazardous:"#ef4444", general:"#6b8c78" };
-  // catIcon rendered inline via wasteCategories lookup
-
-  // compute weekly bar data from logs
-  const weekBars = (() => {
-    const d = new Array(7).fill(0);
-    const now = new Date();
-    logs.forEach(l => {
-      const diff = Math.floor((now - new Date(l.created_at)) / 86400000);
-      if (diff < 7) d[6 - diff]++;
-    });
-    return d;
-  })();
-  const maxBar = Math.max(...weekBars, 1);
+  const catColor = { recyclable: C.blue, organic: C.accent, hazardous: C.danger, general: C.muted };
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:22 }}>
-
-      {/* ── Hero Banner with SVG decoration ── */}
-      <div style={{ position:"relative", borderRadius:20, overflow:"hidden", padding:"28px 32px", background:"linear-gradient(135deg, #091409 0%, #0a1a0e 60%, #061009 100%)", border:"1px solid rgba(34,197,94,0.12)" }}>
-        {/* Animated SVG background */}
-        <svg style={{ position:"absolute", right:0, top:0, height:"100%", width:"45%", opacity:1 }} viewBox="0 0 380 160" preserveAspectRatio="xMaxYMid slice">
-          <defs>
-            <radialGradient id="bannerGrad" cx="60%" cy="50%">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity="0.18"/>
-              <stop offset="100%" stopColor="#22c55e" stopOpacity="0"/>
-            </radialGradient>
-          </defs>
-          <ellipse cx="280" cy="80" rx="160" ry="100" fill="url(#bannerGrad)"/>
-          <circle cx="300" cy="80" r="70" fill="none" stroke="#22c55e" strokeWidth="0.5" opacity="0.25" strokeDasharray="4 6"/>
-          <circle cx="300" cy="80" r="45" fill="none" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" strokeDasharray="3 8"/>
-          <circle cx="300" cy="80" r="22" fill="rgba(34,197,94,0.06)" stroke="#22c55e" strokeWidth="1" opacity="0.6"/>
-          {[0,45,90,135,180,225,270,315].map((deg,i) => {
-            const rad = deg * Math.PI / 180;
-            const x = 300 + 70 * Math.cos(rad); const y = 80 + 70 * Math.sin(rad);
-            return <circle key={i} cx={x} cy={y} r="2.5" fill="#22c55e" opacity={i%2===0?0.5:0.25}/>;
-          })}
-          <line x1="180" y1="0" x2="380" y2="160" stroke="#22c55e" strokeWidth="0.3" opacity="0.1"/>
-          <line x1="200" y1="0" x2="380" y2="130" stroke="#22c55e" strokeWidth="0.3" opacity="0.07"/>
-        </svg>
-
-        <div style={{ position:"relative", zIndex:1 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", boxShadow:"0 0 6px #22c55e" }} />
-            <span style={{ fontSize:12, color:"#22c55e", fontWeight:700, letterSpacing:"0.1em" }}>CITIZEN DASHBOARD</span>
-          </div>
-          <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:800, fontSize:26, color:"#e8f5ee", letterSpacing:"-0.03em", marginBottom:6 }}>
-            Hi, {profile.name?.split(" ")[0]}!
-          </div>
-          <div style={{ fontSize:13, color:"#6b8c78", marginBottom:20 }}>
-            You've saved{" "}
-            <span style={{ color:"#22c55e", fontWeight:700 }}>{profile.co2_saved || 0} kg</span>{" "}
-            of CO₂ · Rank{" "}
-            <span style={{ color:"#3b82f6", fontWeight:700 }}>#{rank || "—"}</span>{" "}
-            in Delhi
-          </div>
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:100, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.2)", fontSize:12, color:"#22c55e", fontWeight:600 }}>
-              <Award size={12} /> Eco Hero
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:100, background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.2)", fontSize:12, color:"#f59e0b", fontWeight:600 }}>
-              <Activity size={12} /> {profile.streak||0} day streak
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:100, background:"rgba(59,130,246,0.1)", border:"1px solid rgba(59,130,246,0.2)", fontSize:12, color:"#3b82f6", fontWeight:600 }}>
-              <Star size={12} /> {profile.green_points||0} pts
-            </div>
-          </div>
+    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
+      {/* Welcome */}
+      <div className="card glow" style={{ padding:28, background:"linear-gradient(135deg, #162019 0%, #0f1f14 100%)", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", right:-20, top:-20, width:160, height:160, background:"radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)" }} />
+        <div style={{ fontSize:13, color:C.muted, marginBottom:4 }}>Good morning 🌿</div>
+        <div className="syne" style={{ fontSize:26, fontWeight:800, color:C.text }}>Hi, {profile.name?.split(" ")[0]}!</div>
+        <div style={{ color:C.muted, marginTop:6, fontSize:14 }}>
+          You've saved <span style={{ color:C.accent, fontWeight:600 }}>{profile.co2_saved || 0} kg</span> of CO₂ this month. Keep it up!
+        </div>
+        <div style={{ marginTop:20, display:"flex", gap:10 }}>
+          <div style={{ padding:"6px 14px", borderRadius:8, background:C.accentGlow, border:`1px solid ${C.dim}`, fontSize:12, color:C.accent }}>🏆 Eco Hero</div>
+          {rank && <div style={{ padding:"6px 14px", borderRadius:8, background:"rgba(59,130,246,.1)", border:`1px solid rgba(59,130,246,.3)`, fontSize:12, color:C.blue }}>Rank #{rank} in Delhi</div>}
         </div>
       </div>
 
-      {/* ── KPI Cards with animated SVG progress rings ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
+      {/* KPIs */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
         {[
-          { label:"Items Logged",  value: loading ? 0 : logs.length,              suffix:"",    icon:ScanLine,  color:"#3b82f6",  max:50 },
-          { label:"Green Points",  value: loading ? 0 : profile.green_points||0,  suffix:"",    icon:Star,      color:"#22c55e",  max:500 },
-          { label:"CO₂ Saved",     value: loading ? 0 : profile.co2_saved||0,     suffix:" kg", icon:Leaf,      color:"#4ade80",  max:50 },
-          { label:"Day Streak",    value: loading ? 0 : profile.streak||0,        suffix:"d",   icon:Activity,  color:"#f59e0b",  max:30 },
-        ].map((s, i) => {
-          const pct = Math.min((s.value / s.max) * 100, 100);
-          const r = 24; const circ = 2 * Math.PI * r;
-          const filled = tick ? (pct / 100) * circ : 0;
-          return (
-            <div key={i} style={{ position:"relative", padding:"18px 20px", borderRadius:16, background:"#162019", border:"1px solid #1e3028", overflow:"hidden", transition:"transform .2s,box-shadow .2s", cursor:"default" }}
-              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 28px ${s.color}18`}}
-              onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none"}}>
-              {/* Background shape */}
-              <div style={{ position:"absolute", right:-16, top:-16, width:80, height:80, borderRadius:"50%", background:`${s.color}08` }} />
-              <div style={{ position:"absolute", inset:0, background:`linear-gradient(135deg, ${s.color}05 0%, transparent 60%)` }} />
-
-              <div style={{ position:"relative", display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-                <div>
-                  <div style={{ fontSize:12, color:"#6b8c78", fontWeight:500, marginBottom:8 }}>{s.label}</div>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:28, fontWeight:800, color:"#e8f5ee", letterSpacing:"-0.04em", lineHeight:1 }}>
-                    {loading ? "—" : s.value}{s.suffix}
-                  </div>
-                </div>
-                {/* SVG ring */}
-                <svg width="56" height="56" viewBox="0 0 56 56" style={{ filter:`drop-shadow(0 0 6px ${s.color}44)` }}>
-                  <circle cx="28" cy="28" r={r} fill="none" stroke={`${s.color}18`} strokeWidth="3.5"/>
-                  <circle cx="28" cy="28" r={r} fill="none" stroke={s.color} strokeWidth="3.5"
-                    strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
-                    style={{ transform:"rotate(-90deg)", transformOrigin:"28px 28px", transition:"stroke-dasharray 1.2s cubic-bezier(0.34,1.56,0.64,1)" }}/>
-                  <foreignObject x="20" y="20" width="16" height="16">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:"100%" }}>
-                      <s.icon size={14} color={s.color}/>
-                    </div>
-                  </foreignObject>
-                </svg>
+          { label:"Items Scanned",  value: loading ? "—" : logs.length,             icon:ScanLine, color:C.blue },
+          { label:"Green Points",   value: loading ? "—" : profile.green_points||0,  icon:Star,     color:C.accent },
+          { label:"CO₂ Saved",      value: loading ? "—" : `${profile.co2_saved||0}kg`, icon:Leaf, color:C.accent },
+          { label:"Streak",         value: loading ? "—" : `${profile.streak||0}d`,  icon:Activity, color:C.warn },
+        ].map((s,i) => (
+          <div key={i} className="card" style={{ padding:20 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
+              <div style={{ fontSize:12, color:C.muted }}>{s.label}</div>
+              <div style={{ width:32, height:32, borderRadius:8, background:`${s.color}18`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <s.icon size={14} color={s.color} />
               </div>
-              {/* Bottom bar */}
-              <div style={{ height:3, borderRadius:2, background:`${s.color}15`, overflow:"hidden" }}>
-                <div style={{ height:"100%", width:`${tick ? pct : 0}%`, background:`linear-gradient(90deg, ${s.color}80, ${s.color})`, borderRadius:2, transition:"width 1.2s cubic-bezier(0.34,1.56,0.64,1)" }} />
-              </div>
-              <div style={{ marginTop:6, fontSize:12, color:"#6b8c78" }}>{Math.round(pct)}% of {s.suffix ? s.max + s.suffix : `${s.max} target`}</div>
             </div>
-          );
-        })}
+            <div className="syne" style={{ fontSize:24, fontWeight:800, color:C.text }}>{s.value}</div>
+          </div>
+        ))}
       </div>
 
-      {/* ── Mini bar chart + Activity ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
-
-        {/* Activity feed */}
-        <div style={{ padding:22, borderRadius:16, background:"#162019", border:"1px solid #1e3028" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-            <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:14, color:"#e8f5ee" }}>Recent Activity</div>
-            <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:"#22c55e", fontWeight:700 }}>
-              <div style={{ width:5, height:5, borderRadius:"50%", background:"#22c55e", animation:"pulse 2s infinite" }} />
-              LIVE
-            </div>
-          </div>
-          {loading ? <div style={{ textAlign:"center", padding:"20px 0" }}><Spinner /></div> :
-            logs.length === 0 ? (
-              <div style={{ textAlign:"center", padding:"28px 0" }}>
-                <div style={{ width:48, height:48, borderRadius:12, background:"rgba(34,197,94,0.06)", border:"1px solid rgba(34,197,94,0.1)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
-                  <ScanLine size={22} color="#2d4a38"/>
-                </div>
-                <div style={{ color:"#6b8c78", fontSize:13 }}>No waste logged yet.<br/>Start with the AI Scanner!</div>
-              </div>
-            ) : (
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                {logs.map((log,i) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:10, background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.04)", transition:"all .2s" }}
-                    onMouseEnter={e=>{e.currentTarget.style.background="rgba(34,197,94,0.04)";e.currentTarget.style.borderColor="rgba(34,197,94,0.12)"}}
-                    onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.02)";e.currentTarget.style.borderColor="rgba(255,255,255,0.04)"}}>
-                    <div style={{ width:30, height:30, borderRadius:8, background:`${catColor[log.category]}12`, border:`1px solid ${catColor[log.category]}25`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      {(() => { const wc = wasteCategories.find(w=>w.id===log.category); return wc ? <wc.icon size={13} color={catColor[log.category]}/> : null; })()}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:12, color:"#e8f5ee", fontWeight:500, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{log.item_name}</div>
-                      <div style={{ fontSize:12, color:"#6b8c78" }}>{log.category} · {new Date(log.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</div>
-                    </div>
-                    <div style={{ padding:"2px 8px", borderRadius:100, background:"rgba(34,197,94,0.1)", fontSize:12, color:"#22c55e", fontWeight:700, flexShrink:0 }}>+{log.points_earned}pts</div>
+      {/* Activity + Tips */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+        <div className="card" style={{ padding:24 }}>
+          <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:16 }}>Recent Activity</div>
+          {loading ? <Spinner /> : logs.length === 0 ? (
+            <div style={{ color:C.muted, fontSize:13 }}>No waste logged yet. Start scanning!</div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {logs.map((log,i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:catColor[log.category], flexShrink:0 }} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{log.item_name}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>{log.category} · {new Date(log.created_at).toLocaleDateString()}</div>
                   </div>
-                ))}
-              </div>
-            )
-          }
-        </div>
-
-        {/* Weekly mini chart */}
-        <div style={{ padding:22, borderRadius:16, background:"#162019", border:"1px solid #1e3028" }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif", fontWeight:700, fontSize:14, color:"#e8f5ee", marginBottom:4 }}>This Week</div>
-          <div style={{ fontSize:12, color:"#6b8c78", marginBottom:20 }}>Items logged per day</div>
-          <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:100 }}>
-            {weekBars.map((v,i) => {
-              const days = ["M","T","W","T","F","S","S"];
-              const isMax = v === maxBar && v > 0;
-              return (
-                <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:"100%", borderRadius:"4px 4px 0 0", height:`${(v/maxBar)*80}px`, minHeight: v > 0 ? 4 : 2,
-                    background: isMax ? "linear-gradient(180deg,#4ade80,#22c55e)" : v > 0 ? "rgba(34,197,94,0.3)" : "rgba(34,197,94,0.08)",
-                    transition:"height 1s cubic-bezier(0.34,1.56,0.64,1)", boxShadow: isMax ? "0 0 10px rgba(34,197,94,0.4)" : "none" }} />
-                  <div style={{ fontSize:12, color: isMax ? "#22c55e" : "#6b8c78", fontWeight: isMax ? 700 : 400 }}>{days[i]}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Segregation guide mini */}
-          <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid rgba(34,197,94,0.08)" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:"#6b8c78", marginBottom:10, fontWeight:600 }}><Leaf size={11} color="#6b8c78"/> Quick Guide</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
-              {wasteCategories.map((wc,i) => (
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 8px", borderRadius:8, background:`${wc.color}08`, border:`1px solid ${wc.color}15` }}>
-                  <wc.icon size={11} color={wc.color}/>
-                  <span style={{ fontSize:12, color:wc.color, fontWeight:600 }}>{wc.label}</span>
+                  <div style={{ fontSize:12, color:C.accent, fontWeight:600 }}>+{log.points_earned}pts</div>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        <div className="card" style={{ padding:24 }}>
+          <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:16 }}>🌱 Segregation Guide</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            {wasteCategories.map((wc,i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <wc.icon size={14} color={wc.color} />
+                <span style={{ fontSize:13, color:wc.color, fontWeight:600, minWidth:80 }}>{wc.label}</span>
+                <span style={{ fontSize:12, color:C.muted }}>{wc.examples.slice(0,2).join(", ")}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1101,7 +664,7 @@ function AIScanner({ user }) {
                   </div>
                   <div style={{ fontWeight:600, color:C.text, marginBottom:6 }}>Upload Waste Image</div>
                   <div style={{ fontSize:13, color:C.muted }}>Click to browse · JPG, PNG, WEBP supported</div>
-                  <div style={{ marginTop:12, fontSize:12, color:C.muted, padding:"6px 14px", background:C.accentGlow, borderRadius:100, display:"inline-block" }}>
+                  <div style={{ marginTop:12, fontSize:11, color:C.muted, padding:"6px 14px", background:C.accentGlow, borderRadius:100, display:"inline-block" }}>
                     AI will classify automatically on upload
                   </div>
                 </div>
@@ -1156,7 +719,7 @@ function AIScanner({ user }) {
                     </div>
                     <div style={{ textAlign:"right" }}>
                       <div style={{ fontSize:28, fontWeight:800, color:meta.color, fontFamily:"Syne" }}>{selectedItem.confidence}%</div>
-                      <div style={{ fontSize:12, color:C.muted }}>confidence</div>
+                      <div style={{ fontSize:11, color:C.muted }}>confidence</div>
                     </div>
                   </div>
                   <div style={{ height:6, borderRadius:3, background:C.dim, overflow:"hidden", marginBottom:16 }}>
@@ -1200,9 +763,9 @@ function AIScanner({ user }) {
                     <div style={{ width:8, height:8, borderRadius:"50%", background:meta.color, flexShrink:0 }} />
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{log.item_name}</div>
-                      <div style={{ fontSize:12, color:C.muted }}>{log.category}</div>
+                      <div style={{ fontSize:11, color:C.muted }}>{log.category}</div>
                     </div>
-                    <div style={{ fontSize:12, color:C.accent }}>+{log.points_earned}pts</div>
+                    <div style={{ fontSize:11, color:C.accent }}>+{log.points_earned}pts</div>
                   </div>
                 );
               })}
@@ -1364,13 +927,13 @@ function MapView() {
               {["all","high","med","low"].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`btn-ghost ${filter === f ? "tab-active" : ""}`}
-                  style={{ padding:"5px 10px", borderRadius:8, fontSize:12 }}>
+                  style={{ padding:"5px 10px", borderRadius:8, fontSize:11 }}>
                   {f === "all" ? "All Zones" : f === "high" ? "🔴" : f === "med" ? "🟡" : "🟢"}
                 </button>
               ))}
               <button onClick={() => setShowLogs(!showLogs)}
                 className={`btn-ghost ${showLogs ? "tab-active" : ""}`}
-                style={{ padding:"5px 10px", borderRadius:8, fontSize:12 }}>
+                style={{ padding:"5px 10px", borderRadius:8, fontSize:11 }}>
                 📍 Waste Logs
               </button>
             </div>
@@ -1384,14 +947,14 @@ function MapView() {
 
           {/* Legend */}
           <div style={{ display:"flex", gap:16, marginTop:12, flexWrap:"wrap" }}>
-            <div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>Legend:</div>
+            <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>Legend:</div>
             {[["#ef4444","High Hotspot"],["#f59e0b","Med Hotspot"],["#22c55e","Low Hotspot"]].map(([c,l],i)=>(
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:C.muted }}>
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:C.muted }}>
                 <div style={{ width:10, height:10, borderRadius:"50%", background:c }} />{l}
               </div>
             ))}
             {[["♻️","Recyclable"],["🌿","Organic"],["⚠️","Hazardous"],["🗑️","General"]].map(([e,l],i)=>(
-              <div key={i} style={{ fontSize:12, color:C.muted }}>{e} {l}</div>
+              <div key={i} style={{ fontSize:11, color:C.muted }}>{e} {l}</div>
             ))}
           </div>
         </div>
@@ -1411,7 +974,7 @@ function MapView() {
                 <>
                   <div style={{ padding:16, borderRadius:12, background:`${levelColor[selectedHotspot.level]}15`, border:`1px solid ${levelColor[selectedHotspot.level]}30`, marginBottom:16 }}>
                     <div style={{ fontWeight:700, fontSize:16, color:C.text }}>{selectedHotspot.name}</div>
-                    <div style={{ display:"inline-flex", marginTop:6, padding:"3px 10px", borderRadius:100, background:`${levelColor[selectedHotspot.level]}20`, fontSize:12, color:levelColor[selectedHotspot.level], fontWeight:600 }}>
+                    <div style={{ display:"inline-flex", marginTop:6, padding:"3px 10px", borderRadius:100, background:`${levelColor[selectedHotspot.level]}20`, fontSize:11, color:levelColor[selectedHotspot.level], fontWeight:600 }}>
                       {selectedHotspot.level?.toUpperCase()} PRIORITY
                     </div>
                   </div>
@@ -1446,15 +1009,15 @@ function MapView() {
             <div className="card" style={{ padding:18 }}>
               <div style={{ fontSize:13, color:C.muted, marginBottom:8 }}>Click any marker for details</div>
               <div style={{ display:"flex", gap:8 }}>
-                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(239,68,68,.1)", fontSize:12, color:C.danger }}>● Hotspot zones</div>
-                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(34,197,94,.1)", fontSize:12, color:C.accent }}>📍 Waste logs</div>
+                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(239,68,68,.1)", fontSize:11, color:C.danger }}>● Hotspot zones</div>
+                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(34,197,94,.1)", fontSize:11, color:C.accent }}>📍 Waste logs</div>
               </div>
             </div>
           )}
 
           <div className="card" style={{ padding:18 }}>
             <div className="syne" style={{ fontWeight:700, fontSize:14, color:C.text, marginBottom:6 }}>Active Hotspots</div>
-            <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>{hotspots.length} zones · {wasteLogs.length} pinned logs</div>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>{hotspots.length} zones · {wasteLogs.length} pinned logs</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {hotspots.filter(h => filter === "all" || h.level === filter).map((h,i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}`, cursor:"pointer" }}
@@ -1462,7 +1025,7 @@ function MapView() {
                   <div style={{ width:8, height:8, borderRadius:"50%", background:levelColor[h.level], flexShrink:0 }} />
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:12, fontWeight:600, color:C.text }}>{h.name}</div>
-                    <div style={{ fontSize:12, color:C.muted }}>{h.volume} kg · {h.collections_needed} truck{h.collections_needed>1?"s":""}</div>
+                    <div style={{ fontSize:10, color:C.muted }}>{h.volume} kg · {h.collections_needed} truck{h.collections_needed>1?"s":""}</div>
                   </div>
                   {h.trend === "up" ? <TrendingUp size={12} color={C.danger} /> : <TrendingDown size={12} color={C.accent} />}
                 </div>
@@ -1568,11 +1131,11 @@ function AddWaste({ user }) {
           <div style={{ display:"flex", gap:12, justifyContent:"center", marginBottom:24 }}>
             <div style={{ padding:"10px 20px", borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}` }}>
               <div className="syne" style={{ fontSize:22, fontWeight:800, color:C.accent }}>+{result.pts}</div>
-              <div style={{ fontSize:12, color:C.muted }}>Points</div>
+              <div style={{ fontSize:11, color:C.muted }}>Points</div>
             </div>
             <div style={{ padding:"10px 20px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}` }}>
               <div className="syne" style={{ fontSize:16, fontWeight:800, color:C.text }}>{result.cat?.label}</div>
-              <div style={{ fontSize:12, color:C.muted }}>Category</div>
+              <div style={{ fontSize:11, color:C.muted }}>Category</div>
             </div>
           </div>
           <button className="btn-primary" style={{ padding:"12px 32px", borderRadius:10, fontSize:14 }}
@@ -1640,7 +1203,7 @@ function AddWaste({ user }) {
                   <MapPin size={15} color={C.accent} />
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{location.address}</div>
-                    <div style={{ fontSize:12, color:C.muted }}>{location.lat.toFixed(5)}, {location.lng.toFixed(5)}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>{location.lat.toFixed(5)}, {location.lng.toFixed(5)}</div>
                   </div>
                   <button onClick={() => setLocation(null)}
                     style={{ background:"none", border:"none", cursor:"pointer", color:C.muted, padding:4 }}>
@@ -1652,14 +1215,14 @@ function AddWaste({ user }) {
                   <button
                     onClick={handleGetGPS}
                     disabled={gpsLoading}
-                    style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, border:`1px dashed ${C.dim}`, background:"transparent", color:C.muted, cursor:"pointer", fontSize:13, fontFamily:"'Inter',sans-serif", transition:"all .2s", width:"100%" }}
+                    style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, border:`1px dashed ${C.dim}`, background:"transparent", color:C.muted, cursor:"pointer", fontSize:13, fontFamily:"'DM Sans',sans-serif", transition:"all .2s", width:"100%" }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = C.dim; e.currentTarget.style.color = C.muted; }}>
                     {gpsLoading ? <Spinner size={15} /> : <MapPin size={15} />}
                     {gpsLoading ? "Getting your location..." : "Use my current GPS location"}
                   </button>
                   {gpsError && <div style={{ fontSize:12, color:C.danger, marginTop:6 }}>⚠ {gpsError}</div>}
-                  <div style={{ fontSize:12, color:C.muted, marginTop:6 }}>Click the button above — your browser will ask for permission</div>
+                  <div style={{ fontSize:11, color:C.muted, marginTop:6 }}>Click the button above — your browser will ask for permission</div>
                 </div>
               )}
             </div>
@@ -1767,9 +1330,9 @@ function Analytics({ isAdmin, user }) {
               <div style={{ display:"flex", alignItems:"flex-end", gap:10, height:160 }}>
                 {weeklyData.values.map((v,i) => (
                   <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                    <div style={{ fontSize:12, color:C.muted }}>{v}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>{v}</div>
                     <div className="chart-bar" style={{ width:"100%", height:`${(v/maxBar)*120}px`, background:v===Math.max(...weeklyData.values)?C.accent:`${C.accent}50`, minHeight:4 }} />
-                    <div style={{ fontSize:12, color:C.muted }}>{weeklyData.labels[i]}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>{weeklyData.labels[i]}</div>
                   </div>
                 ))}
               </div>
@@ -1802,7 +1365,7 @@ function Analytics({ isAdmin, user }) {
                 </button>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"40px 1fr 120px 100px", gap:0 }}>
-                <div style={{ padding:"8px 12px", fontSize:12, color:C.muted, gridColumn:"1/-1", display:"grid", gridTemplateColumns:"40px 1fr 120px 100px", background:C.surface, borderRadius:8, marginBottom:6 }}>
+                <div style={{ padding:"8px 12px", fontSize:11, color:C.muted, gridColumn:"1/-1", display:"grid", gridTemplateColumns:"40px 1fr 120px 100px", background:C.surface, borderRadius:8, marginBottom:6 }}>
                   <span>#</span><span>Name</span><span>Green Points</span><span>CO₂ Saved</span>
                 </div>
                 {leaderboard.map((row,i) => (
@@ -1830,7 +1393,7 @@ function Analytics({ isAdmin, user }) {
                       <div style={{ display:"flex", alignItems:"center", gap:5, color:C.muted, fontSize:13, minWidth:100 }}><Clock size={12} />{s.time}</div>
                       <div style={{ flex:1, fontSize:13, color:C.muted }}>{s.type} waste</div>
                       <div style={{ fontSize:12, color:C.muted }}>{s.truck}</div>
-                      <div style={{ padding:"4px 12px", borderRadius:100, background:`${sc}18`, border:`1px solid ${sc}30`, fontSize:12, color:sc, fontWeight:600, textTransform:"capitalize" }}>{s.status}</div>
+                      <div style={{ padding:"4px 12px", borderRadius:100, background:`${sc}18`, border:`1px solid ${sc}30`, fontSize:11, color:sc, fontWeight:600, textTransform:"capitalize" }}>{s.status}</div>
                     </div>
                   );
                 })}
@@ -1883,15 +1446,15 @@ function AdminDashboard() {
             <div style={{ display:"flex", gap:10 }}>
               <div style={{ padding:"10px 16px", borderRadius:10, background:"rgba(239,68,68,.1)", border:"1px solid rgba(239,68,68,.3)", textAlign:"center" }}>
                 <div className="syne" style={{ fontSize:20, fontWeight:800, color:C.danger }}>{hotspots.filter(h=>h.level==="high").length}</div>
-                <div style={{ fontSize:12, color:C.muted }}>Critical Zones</div>
+                <div style={{ fontSize:11, color:C.muted }}>Critical Zones</div>
               </div>
               <div style={{ padding:"10px 16px", borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}`, textAlign:"center" }}>
                 <div className="syne" style={{ fontSize:20, fontWeight:800, color:C.accent }}>{userCount}</div>
-                <div style={{ fontSize:12, color:C.muted }}>Registered Users</div>
+                <div style={{ fontSize:11, color:C.muted }}>Registered Users</div>
               </div>
               <div style={{ padding:"10px 16px", borderRadius:10, background:"rgba(59,130,246,.1)", border:"1px solid rgba(59,130,246,.3)", textAlign:"center" }}>
                 <div className="syne" style={{ fontSize:20, fontWeight:800, color:C.blue }}>{logCount}</div>
-                <div style={{ fontSize:12, color:C.muted }}>Total Logs</div>
+                <div style={{ fontSize:11, color:C.muted }}>Total Logs</div>
               </div>
             </div>
           )}
@@ -1915,8 +1478,8 @@ function AdminDashboard() {
                     <div style={{ height:"100%", width:`${Math.min((h.volume/3000)*100,100)}%`, background:C.danger, borderRadius:3 }} />
                   </div>
                   <div style={{ display:"flex", gap:8 }}>
-                    <button className="btn-primary" style={{ padding:"5px 14px", borderRadius:8, fontSize:12 }}>Dispatch</button>
-                    <button className="btn-ghost"   style={{ padding:"5px 14px", borderRadius:8, fontSize:12 }}>Details</button>
+                    <button className="btn-primary" style={{ padding:"5px 14px", borderRadius:8, fontSize:11 }}>Dispatch</button>
+                    <button className="btn-ghost"   style={{ padding:"5px 14px", borderRadius:8, fontSize:11 }}>Details</button>
                   </div>
                 </div>
               ))}
@@ -1930,9 +1493,9 @@ function AdminDashboard() {
                     <div style={{ width:8, height:8, borderRadius:"50%", background:levelColor[h.level], flexShrink:0 }} />
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, fontWeight:600, color:C.text }}>{h.name}</div>
-                      <div style={{ fontSize:12, color:C.muted }}>{h.volume} kg · {h.collections_needed} truck{h.collections_needed>1?"s":""}</div>
+                      <div style={{ fontSize:11, color:C.muted }}>{h.volume} kg · {h.collections_needed} truck{h.collections_needed>1?"s":""}</div>
                     </div>
-                    <div style={{ padding:"2px 8px", borderRadius:100, background:`${levelColor[h.level]}18`, fontSize:12, color:levelColor[h.level], fontWeight:600, textTransform:"uppercase" }}>{h.level}</div>
+                    <div style={{ padding:"2px 8px", borderRadius:100, background:`${levelColor[h.level]}18`, fontSize:10, color:levelColor[h.level], fontWeight:600, textTransform:"uppercase" }}>{h.level}</div>
                   </div>
                 ))}
               </div>
@@ -1949,9 +1512,9 @@ function AdminDashboard() {
                     <div style={{ width:8, height:8, borderRadius:"50%", background:sc, flexShrink:0 }} />
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, fontWeight:600, color:C.text }}>{s.zone}</div>
-                      <div style={{ fontSize:12, color:C.muted }}>{s.time} · {s.type} · {s.truck}</div>
+                      <div style={{ fontSize:11, color:C.muted }}>{s.time} · {s.type} · {s.truck}</div>
                     </div>
-                    <div style={{ padding:"3px 10px", borderRadius:100, background:`${sc}18`, fontSize:12, color:sc, fontWeight:600, textTransform:"capitalize" }}>{s.status}</div>
+                    <div style={{ padding:"3px 10px", borderRadius:100, background:`${sc}18`, fontSize:10, color:sc, fontWeight:600, textTransform:"capitalize" }}>{s.status}</div>
                   </div>
                 );
               })}
@@ -2005,7 +1568,7 @@ function HotspotsPage() {
                 <div style={{ display:"flex", gap:10, alignItems:"center" }}>
                   <div style={{ textAlign:"right" }}>
                     <div className="syne" style={{ fontSize:20, fontWeight:800, color:C.text }}>{h.volume} kg</div>
-                    <div style={{ fontSize:12, color:C.muted }}>volume</div>
+                    <div style={{ fontSize:11, color:C.muted }}>volume</div>
                   </div>
                   <div style={{ padding:"6px 14px", borderRadius:100, background:`${col}18`, border:`1px solid ${col}30`, fontSize:12, color:col, fontWeight:700, textTransform:"uppercase" }}>{h.level}</div>
                 </div>
