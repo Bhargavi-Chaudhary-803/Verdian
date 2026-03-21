@@ -289,7 +289,7 @@ function LandingPage({ onNavigate }) {
           <h1 className="syne" style={{ fontSize:"clamp(40px,7vw,80px)", fontWeight:800, lineHeight:1.05, marginBottom:24, color:C.text }}>
             Smarter Waste.<br /><span style={{ color:C.accent }}>Greener Cities.</span>
           </h1>
-          <p style={{ fontSize:18, color:C.muted, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
+          <p style={{ fontSize:18, color:C.text, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
             Verdian uses computer vision and real-time analytics to classify waste, guide citizens, and optimize municipal collection routes — reducing landfill burden by up to 40%.
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
