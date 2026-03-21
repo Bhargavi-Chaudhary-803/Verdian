@@ -561,7 +561,7 @@ function UserDashboard({ user }) {
           Hi, {profile.name?.split(" ")[0] || "there"}!
         </div>
         <div style={{ fontSize:16, color:C.muted, marginBottom:20 }}>
-          You've saved <span style={{ color:C.accent, fontWeight:700 }}>{profile.co2_saved || 0} kg</span> of CO₂ &nbsp;·&nbsp; Rank <span style={{ color:C.blue, fontWeight:700 }}>#{rank || "—"}</span> in Delhi
+          You've saved <span style={{ color:C.accent, fontWeight:700 }}>{profile.co2_saved || 0} kg</span> of CO₂
         </div>
         <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:100, background:"rgba(34,197,94,0.12)", border:"1px solid rgba(34,197,94,0.25)", fontSize:14, color:C.accent, fontWeight:600 }}>
