@@ -26,6 +26,41 @@ const css = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
   @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
   .leaflet-container { border-radius: 12px; }
+  .leaflet-popup-content-wrapper { background: #ffffff; border: 1px solid #e2e8f0; color: #1a202c; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+  .leaflet-popup-tip { background: #ffffff; }
+  .leaflet-popup-content { margin: 14px 18px; font-family: 'DM Sans', sans-serif; }
+  .leaflet-popup-close-button { color: #888 !important; }
+  .leaflet-control-zoom a { background: #ffffff !important; color: #16a34a !important; border-color: #d1fae5 !important; font-weight: 700 !important; }
+  .leaflet-control-zoom a:hover { background: #f0fdf4 !important; }
+  .leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: #888 !important; font-size: 10px; }
+  .leaflet-control-attribution a { color: #16a34a !important; }act";
+import { createClient } from "@supabase/supabase-js";
+import {
+  Leaf, Trash2, MapPin, BarChart3, LogOut,
+  User, Bell, Upload, CheckCircle, AlertTriangle,
+  Recycle, TrendingUp, TrendingDown, Clock, Shield, Users,
+  Map, ScanLine, Plus, X, Star, Activity, Download,
+  Home, Radio, Settings, Loader
+} from "lucide-react";
+
+// ─── Supabase Client ──────────────────────────────────────────────────────────
+const supabase = createClient(
+  "https://fhitqdahjiupsehqevta.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaXRxZGFoaml1cHNlaHFldnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMDU5NjgsImV4cCI6MjA4OTY4MTk2OH0.JrqjT_AGvcwDp5l3oAPsMujUrim8zWoLxHtwONXH5h8"
+);
+
+// ─── Color Tokens ─────────────────────────────────────────────────────────────
+const C = {
+  bg: "#0a0f0d", surface: "#111a15", card: "#162019", border: "#1e3028",
+  accent: "#22c55e", accentDim: "#16a34a", accentGlow: "rgba(34,197,94,0.15)",
+  warn: "#f59e0b", danger: "#ef4444", blue: "#3b82f6",
+  text: "#e8f5ee", muted: "#6b8c78", dim: "#2d4a38",
+};
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+  .leaflet-container { border-radius: 12px; }
   .leaflet-popup-content-wrapper { background: #162019; border: 1px solid #1e3028; color: #e8f5ee; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
   .leaflet-popup-tip { background: #162019; }
   .leaflet-popup-content { margin: 14px 18px; font-family: 'DM Sans', sans-serif; }
@@ -745,29 +780,38 @@ function AIScanner({ user }) {
 // ─── LEAFLET MAP VIEW ────────────────────────────────────────────────────────
 function MapView() {
   const [hotspots,        setHotspots]        = useState([]);
+  const [wasteLogs,       setWasteLogs]       = useState([]);
   const [selectedHotspot, setSelectedHotspot] = useState(null);
+  const [selectedLog,     setSelectedLog]     = useState(null);
   const [filter,          setFilter]          = useState("all");
+  const [showLogs,        setShowLogs]        = useState(true);
   const [loading,         setLoading]         = useState(true);
-  const mapRef     = useRef(null);
-  const mapObjRef  = useRef(null);
-  const markersRef = useRef([]);
+  const mapRef          = useRef(null);
+  const mapObjRef       = useRef(null);
+  const hotspotMarkersRef = useRef([]);
+  const logMarkersRef     = useRef([]);
 
   useEffect(() => {
-    supabase.from("hotspots").select("*").then(({ data }) => {
-      setHotspots(data || []);
+    const load = async () => {
+      const [{ data: hs }, { data: logs }] = await Promise.all([
+        supabase.from("hotspots").select("*"),
+        supabase.from("waste_logs").select("id,item_name,category,lat,lng,address,created_at,points_earned").not("lat", "is", null).not("lng", "is", null),
+      ]);
+      setHotspots(hs || []);
+      setWasteLogs(logs || []);
       setLoading(false);
-    });
+    };
+    load();
   }, []);
 
   // Dynamically load Leaflet and init map
   useEffect(() => {
     if (loading || !mapRef.current || mapObjRef.current) return;
-
+    if (window.L) { initMap(); return; }
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.onload = () => initMap();
     document.head.appendChild(script);
-
     return () => {
       if (mapObjRef.current) { mapObjRef.current.remove(); mapObjRef.current = null; }
     };
@@ -775,70 +819,100 @@ function MapView() {
 
   const levelColor = { high:"#ef4444", med:"#f59e0b", low:"#22c55e" };
   const levelLabel = { high:"HIGH", med:"MED", low:"LOW" };
+  const catColor   = { recyclable:"#3b82f6", organic:"#22c55e", hazardous:"#ef4444", general:"#6b8c78" };
+  const catEmoji   = { recyclable:"♻️", organic:"🌿", hazardous:"⚠️", general:"🗑️" };
 
   const initMap = () => {
     if (!window.L || !mapRef.current || mapObjRef.current) return;
     const L = window.L;
+    const map = L.map(mapRef.current, { center:[28.63,77.22], zoom:11, zoomControl:true });
 
-    const map = L.map(mapRef.current, {
-      center: [28.63, 77.22],
-      zoom: 11,
-      zoomControl: true,
-    });
-
-    // Dark tile layer
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-      subdomains: "abcd",
+    // ── Light tile layer (OpenStreetMap)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(map);
 
     mapObjRef.current = map;
-    renderMarkers(map, hotspots, "all");
+    renderHotspotMarkers(map, hotspots, "all");
+    renderLogMarkers(map, wasteLogs);
   };
 
-  const renderMarkers = (map, spots, fil) => {
+  const renderHotspotMarkers = (map, spots, fil) => {
     const L = window.L;
     if (!L || !map) return;
-    // Clear old markers
-    markersRef.current.forEach(m => map.removeLayer(m));
-    markersRef.current = [];
-
+    hotspotMarkersRef.current.forEach(m => map.removeLayer(m));
+    hotspotMarkersRef.current = [];
     spots.filter(h => fil === "all" || h.level === fil).forEach(h => {
       const col = levelColor[h.level] || "#22c55e";
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:28px;height:28px;border-radius:50%;background:${col}30;border:2px solid ${col};display:flex;align-items:center;justify-content:center;cursor:pointer;">
-          <div style="width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 8px ${col};"></div>
+        html: `<div style="width:34px;height:34px;border-radius:50%;background:${col}22;border:2.5px solid ${col};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ${col}44;">
+          <div style="width:12px;height:12px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col};"></div>
         </div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-        popupAnchor: [0, -16],
+        iconSize:[34,34], iconAnchor:[17,17], popupAnchor:[0,-20],
       });
-
       const marker = L.marker([h.lat, h.lng], { icon }).addTo(map);
       marker.bindPopup(`
-        <div style="min-width:180px;">
-          <div style="font-family:Syne,sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;">${h.name}</div>
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-            <span style="padding:2px 10px;border-radius:100px;background:${col}20;border:1px solid ${col}40;color:${col};font-size:11px;font-weight:700;">${levelLabel[h.level]}</span>
-            <span style="font-size:12px;color:#6b8c78;">${h.trend === "up" ? "↑ Increasing" : "↓ Decreasing"}</span>
+        <div style="min-width:190px;font-family:'DM Sans',sans-serif;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:#1a1a1a;">${h.name}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+            <span style="padding:2px 9px;border-radius:100px;background:${col}18;border:1px solid ${col}40;color:${col};font-size:10px;font-weight:700;">${levelLabel[h.level]}</span>
+            <span style="font-size:11px;color:#888;">${h.trend === "up" ? "↑ Increasing" : "↓ Decreasing"}</span>
           </div>
-          <div style="font-size:13px;color:#6b8c78;margin-bottom:4px;">Volume: <span style="color:#e8f5ee;font-weight:600;">${h.volume} kg</span></div>
-          <div style="font-size:13px;color:#6b8c78;">Trucks needed: <span style="color:#e8f5ee;font-weight:600;">${h.collections_needed}</span></div>
+          <div style="font-size:12px;color:#555;margin-bottom:3px;">Volume: <b style="color:#222;">${h.volume} kg</b></div>
+          <div style="font-size:12px;color:#555;">Trucks needed: <b style="color:#222;">${h.collections_needed}</b></div>
         </div>
       `);
       marker.on("click", () => setSelectedHotspot(h));
-      markersRef.current.push(marker);
+      hotspotMarkersRef.current.push(marker);
     });
   };
 
-  // Re-render markers when filter changes
+  const renderLogMarkers = (map, logs) => {
+    const L = window.L;
+    if (!L || !map) return;
+    logMarkersRef.current.forEach(m => map.removeLayer(m));
+    logMarkersRef.current = [];
+    logs.forEach(log => {
+      if (!log.lat || !log.lng) return;
+      const col = catColor[log.category] || "#6b8c78";
+      const emoji = catEmoji[log.category] || "🗑️";
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:30px;height:30px;border-radius:8px;background:white;border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.15);cursor:pointer;">${emoji}</div>`,
+        iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-18],
+      });
+      const marker = L.marker([log.lat, log.lng], { icon }).addTo(map);
+      const date = new Date(log.created_at).toLocaleDateString("en-IN", { day:"numeric", month:"short" });
+      marker.bindPopup(`
+        <div style="min-width:160px;font-family:'DM Sans',sans-serif;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:#1a1a1a;">${log.item_name}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+            <span style="padding:2px 8px;border-radius:100px;background:${col}15;border:1px solid ${col}40;color:${col};font-size:10px;font-weight:600;text-transform:capitalize;">${log.category}</span>
+          </div>
+          <div style="font-size:11px;color:#777;">${log.address || ""}</div>
+          <div style="font-size:11px;color:#999;margin-top:3px;">${date} · +${log.points_earned} pts</div>
+        </div>
+      `);
+      marker.on("click", () => setSelectedLog(log));
+      logMarkersRef.current.push(marker);
+    });
+  };
+
+  // Re-render hotspot markers on filter change
   useEffect(() => {
-    if (mapObjRef.current && hotspots.length > 0) {
-      renderMarkers(mapObjRef.current, hotspots, filter);
-    }
+    if (mapObjRef.current && hotspots.length > 0) renderHotspotMarkers(mapObjRef.current, hotspots, filter);
   }, [filter, hotspots]);
+
+  // Toggle log pins visibility
+  useEffect(() => {
+    if (!mapObjRef.current) return;
+    logMarkersRef.current.forEach(m => {
+      if (showLogs) mapObjRef.current.addLayer(m);
+      else mapObjRef.current.removeLayer(m);
+    });
+  }, [showLogs]);
 
   return (
     <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
@@ -847,62 +921,107 @@ function MapView() {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
             <div>
               <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text }}>Delhi Waste Map</div>
-              <div style={{ fontSize:12, color:C.muted }}>Live hotspots from Supabase · Leaflet map</div>
+              <div style={{ fontSize:12, color:C.muted }}>Hotspots + logged waste pins · Live from Supabase</div>
             </div>
-            <div style={{ display:"flex", gap:6 }}>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
               {["all","high","med","low"].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`btn-ghost ${filter === f ? "tab-active" : ""}`}
-                  style={{ padding:"5px 12px", borderRadius:8, fontSize:11 }}>
-                  {f === "all" ? "All" : f === "high" ? "🔴 High" : f === "med" ? "🟡 Med" : "🟢 Low"}
+                  style={{ padding:"5px 10px", borderRadius:8, fontSize:11 }}>
+                  {f === "all" ? "All Zones" : f === "high" ? "🔴" : f === "med" ? "🟡" : "🟢"}
                 </button>
               ))}
+              <button onClick={() => setShowLogs(!showLogs)}
+                className={`btn-ghost ${showLogs ? "tab-active" : ""}`}
+                style={{ padding:"5px 10px", borderRadius:8, fontSize:11 }}>
+                📍 Waste Logs
+              </button>
             </div>
           </div>
 
           {loading ? (
             <div style={{ height:480, display:"flex", alignItems:"center", justifyContent:"center" }}><Spinner size={32} /></div>
           ) : (
-            <div ref={mapRef} style={{ height:480, borderRadius:12, overflow:"hidden", background:"#0d1a10" }} />
+            <div ref={mapRef} style={{ height:480, borderRadius:12, overflow:"hidden", border:`1px solid ${C.border}` }} />
           )}
+
+          {/* Legend */}
+          <div style={{ display:"flex", gap:16, marginTop:12, flexWrap:"wrap" }}>
+            <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>Legend:</div>
+            {[["#ef4444","High Hotspot"],["#f59e0b","Med Hotspot"],["#22c55e","Low Hotspot"]].map(([c,l],i)=>(
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:C.muted }}>
+                <div style={{ width:10, height:10, borderRadius:"50%", background:c }} />{l}
+              </div>
+            ))}
+            {[["♻️","Recyclable"],["🌿","Organic"],["⚠️","Hazardous"],["🗑️","General"]].map(([e,l],i)=>(
+              <div key={i} style={{ fontSize:11, color:C.muted }}>{e} {l}</div>
+            ))}
+          </div>
         </div>
 
         {/* Side panel */}
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          {selectedHotspot ? (
+          {(selectedHotspot || selectedLog) ? (
             <div className="card fade-in" style={{ padding:22 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-                <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text }}>Zone Detail</div>
-                <button onClick={() => setSelectedHotspot(null)} style={{ background:"none", border:"none", cursor:"pointer", color:C.muted }}><X size={16} /></button>
-              </div>
-              <div style={{ padding:16, borderRadius:12, background:`${levelColor[selectedHotspot.level]}15`, border:`1px solid ${levelColor[selectedHotspot.level]}30`, marginBottom:16 }}>
-                <div style={{ fontWeight:700, fontSize:16, color:C.text }}>{selectedHotspot.name}</div>
-                <div style={{ display:"inline-flex", marginTop:6, padding:"3px 10px", borderRadius:100, background:`${levelColor[selectedHotspot.level]}20`, fontSize:11, color:levelColor[selectedHotspot.level], fontWeight:600 }}>
-                  {selectedHotspot.level?.toUpperCase()} PRIORITY
+                <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text }}>
+                  {selectedHotspot ? "Zone Detail" : "Waste Log Detail"}
                 </div>
+                <button onClick={() => { setSelectedHotspot(null); setSelectedLog(null); }}
+                  style={{ background:"none", border:"none", cursor:"pointer", color:C.muted }}><X size={16} /></button>
               </div>
-              {[["Volume", `${selectedHotspot.volume} kg`], ["Trucks needed", selectedHotspot.collections_needed], ["Trend", selectedHotspot.trend === "up" ? "↑ Increasing" : "↓ Decreasing"]].map(([k,v],i) => (
-                <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom: i < 2 ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ fontSize:13, color:C.muted }}>{k}</span>
-                  <span style={{ fontSize:13, color:C.text, fontWeight:600 }}>{v}</span>
-                </div>
-              ))}
+              {selectedHotspot && (
+                <>
+                  <div style={{ padding:16, borderRadius:12, background:`${levelColor[selectedHotspot.level]}15`, border:`1px solid ${levelColor[selectedHotspot.level]}30`, marginBottom:16 }}>
+                    <div style={{ fontWeight:700, fontSize:16, color:C.text }}>{selectedHotspot.name}</div>
+                    <div style={{ display:"inline-flex", marginTop:6, padding:"3px 10px", borderRadius:100, background:`${levelColor[selectedHotspot.level]}20`, fontSize:11, color:levelColor[selectedHotspot.level], fontWeight:600 }}>
+                      {selectedHotspot.level?.toUpperCase()} PRIORITY
+                    </div>
+                  </div>
+                  {[["Volume", `${selectedHotspot.volume} kg`], ["Trucks needed", selectedHotspot.collections_needed], ["Trend", selectedHotspot.trend === "up" ? "↑ Increasing" : "↓ Decreasing"]].map(([k,v],i) => (
+                    <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom: i < 2 ? `1px solid ${C.border}` : "none" }}>
+                      <span style={{ fontSize:13, color:C.muted }}>{k}</span>
+                      <span style={{ fontSize:13, color:C.text, fontWeight:600 }}>{v}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+              {selectedLog && (
+                <>
+                  <div style={{ padding:16, borderRadius:12, background:`${catColor[selectedLog.category]}12`, border:`1px solid ${catColor[selectedLog.category]}30`, marginBottom:14 }}>
+                    <div style={{ fontWeight:700, fontSize:15, color:C.text }}>{selectedLog.item_name}</div>
+                    <div style={{ fontSize:12, color:catColor[selectedLog.category], fontWeight:600, marginTop:4, textTransform:"capitalize" }}>{catEmoji[selectedLog.category]} {selectedLog.category}</div>
+                  </div>
+                  {[
+                    ["Location", selectedLog.address || `${selectedLog.lat?.toFixed(4)}, ${selectedLog.lng?.toFixed(4)}`],
+                    ["Date", new Date(selectedLog.created_at).toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" })],
+                    ["Points", `+${selectedLog.points_earned} pts`],
+                  ].map(([k,v],i) => (
+                    <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom: i < 2 ? `1px solid ${C.border}` : "none" }}>
+                      <span style={{ fontSize:13, color:C.muted }}>{k}</span>
+                      <span style={{ fontSize:13, color:C.text, fontWeight:600, textAlign:"right", maxWidth:160 }}>{v}</span>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           ) : (
             <div className="card" style={{ padding:18 }}>
-              <div style={{ fontSize:13, color:C.muted }}>Click a marker on the map for zone details</div>
+              <div style={{ fontSize:13, color:C.muted, marginBottom:8 }}>Click any marker for details</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(239,68,68,.1)", fontSize:11, color:C.danger }}>● Hotspot zones</div>
+                <div style={{ padding:"4px 10px", borderRadius:6, background:"rgba(34,197,94,.1)", fontSize:11, color:C.accent }}>📍 Waste logs</div>
+              </div>
             </div>
           )}
 
           <div className="card" style={{ padding:18 }}>
-            <div className="syne" style={{ fontWeight:700, fontSize:14, color:C.text, marginBottom:14 }}>Active Hotspots</div>
+            <div className="syne" style={{ fontWeight:700, fontSize:14, color:C.text, marginBottom:6 }}>Active Hotspots</div>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>{hotspots.length} zones · {wasteLogs.length} pinned logs</div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {hotspots.filter(h => filter === "all" || h.level === filter).map((h,i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}`, cursor:"pointer" }}
-                  onClick={() => {
-                    setSelectedHotspot(h);
-                    if (mapObjRef.current) mapObjRef.current.setView([h.lat, h.lng], 13);
-                  }}>
+                  onClick={() => { setSelectedHotspot(h); setSelectedLog(null); if (mapObjRef.current) mapObjRef.current.setView([h.lat, h.lng], 13); }}>
                   <div style={{ width:8, height:8, borderRadius:"50%", background:levelColor[h.level], flexShrink:0 }} />
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:12, fontWeight:600, color:C.text }}>{h.name}</div>
@@ -926,6 +1045,33 @@ function AddWaste({ user }) {
   const [result,    setResult]    = useState(null);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState("");
+  const [location,  setLocation]  = useState(null); // { lat, lng, address }
+  const [gpsLoading,setGpsLoading]= useState(false);
+  const [gpsError,  setGpsError]  = useState("");
+
+  const handleGetGPS = () => {
+    if (!navigator.geolocation) { setGpsError("Geolocation not supported by your browser."); return; }
+    setGpsLoading(true); setGpsError("");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        // Reverse geocode using OpenStreetMap Nominatim (free, no key needed)
+        let address = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const data = await res.json();
+          address = data.display_name?.split(",").slice(0,3).join(", ") || address;
+        } catch (_) {}
+        setLocation({ lat, lng, address });
+        setGpsLoading(false);
+      },
+      (err) => {
+        setGpsError(err.code === 1 ? "Location permission denied. Please allow access in browser settings." : "Could not get location. Try again.");
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleSubmit = async () => {
     if (!form.name || !form.category) { setError("Item name and category are required."); return; }
@@ -933,7 +1079,7 @@ function AddWaste({ user }) {
     const pts = { recyclable:10, organic:5, hazardous:20, general:3 }[form.category];
     const co2Map = { recyclable:0.3, organic:0.1, hazardous:0.5, general:0.05 };
 
-    const { error: insertError } = await supabase.from("waste_logs").insert({
+    const insertData = {
       user_id:       user.id,
       item_name:     form.name,
       category:      form.category,
@@ -941,7 +1087,14 @@ function AddWaste({ user }) {
       unit:          form.unit,
       notes:         form.notes,
       points_earned: pts,
-    });
+    };
+    if (location) {
+      insertData.lat = location.lat;
+      insertData.lng = location.lng;
+      insertData.address = location.address;
+    }
+
+    const { error: insertError } = await supabase.from("waste_logs").insert(insertData);
 
     if (insertError) {
       setError(insertError.message);
@@ -956,7 +1109,7 @@ function AddWaste({ user }) {
       co2_saved:    Math.round(((prof?.co2_saved || 0) + (co2Map[form.category] || 0.1)) * 100) / 100,
     }).eq("id", user.id);
 
-    setResult({ ...form, pts, cat: wasteCategories.find(c => c.id === form.category) });
+    setResult({ ...form, pts, cat: wasteCategories.find(c => c.id === form.category), location });
     setSubmitted(true);
     setLoading(false);
   };
@@ -969,7 +1122,12 @@ function AddWaste({ user }) {
             <CheckCircle size={32} color={C.accent} />
           </div>
           <div className="syne" style={{ fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}>Saved to Supabase!</div>
-          <div style={{ color:C.muted, marginBottom:24 }}>{result.name} · {result.quantity} {result.unit}</div>
+          <div style={{ color:C.muted, marginBottom:8 }}>{result.name} · {result.quantity} {result.unit}</div>
+          {result.location && (
+            <div style={{ fontSize:12, color:C.accent, marginBottom:16, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              <MapPin size={12} /> {result.location.address}
+            </div>
+          )}
           <div style={{ display:"flex", gap:12, justifyContent:"center", marginBottom:24 }}>
             <div style={{ padding:"10px 20px", borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}` }}>
               <div className="syne" style={{ fontSize:22, fontWeight:800, color:C.accent }}>+{result.pts}</div>
@@ -981,7 +1139,7 @@ function AddWaste({ user }) {
             </div>
           </div>
           <button className="btn-primary" style={{ padding:"12px 32px", borderRadius:10, fontSize:14 }}
-            onClick={() => { setSubmitted(false); setForm({ name:"", category:"", quantity:"1", unit:"items", notes:"" }); }}>
+            onClick={() => { setSubmitted(false); setForm({ name:"", category:"", quantity:"1", unit:"items", notes:"" }); setLocation(null); }}>
             Log Another
           </button>
         </div>
@@ -1033,6 +1191,40 @@ function AddWaste({ user }) {
                   {["items","kg","litres","bags"].map(u => <option key={u}>{u}</option>)}
                 </select>
               </div>
+            </div>
+
+            {/* ── Location Section ── */}
+            <div>
+              <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>
+                📍 Location <span style={{ color:C.dim }}>(optional — shown as pin on map)</span>
+              </label>
+              {location ? (
+                <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:10, background:"rgba(34,197,94,.08)", border:`1px solid ${C.dim}` }}>
+                  <MapPin size={15} color={C.accent} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{location.address}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>{location.lat.toFixed(5)}, {location.lng.toFixed(5)}</div>
+                  </div>
+                  <button onClick={() => setLocation(null)}
+                    style={{ background:"none", border:"none", cursor:"pointer", color:C.muted, padding:4 }}>
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <button
+                    onClick={handleGetGPS}
+                    disabled={gpsLoading}
+                    style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, border:`1px dashed ${C.dim}`, background:"transparent", color:C.muted, cursor:"pointer", fontSize:13, fontFamily:"'DM Sans',sans-serif", transition:"all .2s", width:"100%" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = C.dim; e.currentTarget.style.color = C.muted; }}>
+                    {gpsLoading ? <Spinner size={15} /> : <MapPin size={15} />}
+                    {gpsLoading ? "Getting your location..." : "Use my current GPS location"}
+                  </button>
+                  {gpsError && <div style={{ fontSize:12, color:C.danger, marginTop:6 }}>⚠ {gpsError}</div>}
+                  <div style={{ fontSize:11, color:C.muted, marginTop:6 }}>Click the button above — your browser will ask for permission</div>
+                </div>
+              )}
             </div>
 
             <div>
