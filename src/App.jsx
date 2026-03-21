@@ -164,6 +164,48 @@ async function seedSampleData() {
       { id:"66666666-6666-6666-6666-666666666666", name:"Sneha Iyer",    role:"user",  green_points:760,  co2_saved:7,  streak:2  },
     ]);
   }
+
+  // --- Agencies ---
+  const { count: agCount } = await supabase.from("agencies").select("*", { count:"exact", head:true });
+  if (!agCount || agCount === 0) {
+    await supabase.from("agencies").insert([
+      { name:"GreenHaul Delhi",     zone:"Central Delhi", contact:"9810001001", vehicles:6, speciality:"general",    status:"available" },
+      { name:"EcoLift Services",    zone:"South Delhi",   contact:"9810002002", vehicles:4, speciality:"recyclable", status:"available" },
+      { name:"SafeDispose Co.",     zone:"West Delhi",    contact:"9810003003", vehicles:3, speciality:"hazardous",  status:"available" },
+      { name:"BioClean Organics",   zone:"North Delhi",   contact:"9810004004", vehicles:5, speciality:"organic",    status:"available" },
+      { name:"CityWaste Solutions", zone:"East Delhi",    contact:"9810005005", vehicles:4, speciality:"general",    status:"busy"      },
+      { name:"SwiftPickup Pvt Ltd", zone:"Noida / NCR",   contact:"9810006006", vehicles:3, speciality:"recyclable", status:"available" },
+    ]);
+  }
+
+  // --- Pickers (third-party placeholder data) ---
+  // Real pickers get inserted automatically via PickerBeacon when a user with role="picker" logs in.
+  // These are seeded as third-party / partner pickers for demo purposes.
+  // Schema: { id, name, contact, lat, lng, status, speciality, last_seen }
+  const { count: pkCount } = await supabase.from("pickers").select("*", { count:"exact", head:true });
+  if (!pkCount || pkCount === 0) {
+    const now = new Date().toISOString();
+    await supabase.from("pickers").insert([
+      // ── Central Delhi / Connaught Place belt ───────────────────────────────
+      { id:"picker-seed-0001", name:"Raju Prasad",    contact:"9811100001", lat:28.6320, lng:77.2195, status:"available", speciality:"general",    last_seen:now },
+      { id:"picker-seed-0002", name:"Meena Devi",     contact:"9811100002", lat:28.6290, lng:77.2080, status:"available", speciality:"organic",     last_seen:now },
+      // ── Karol Bagh / West Delhi ────────────────────────────────────────────
+      { id:"picker-seed-0003", name:"Suresh Kumar",   contact:"9811100003", lat:28.6510, lng:77.1890, status:"available", speciality:"recyclable",  last_seen:now },
+      { id:"picker-seed-0004", name:"Anita Singh",    contact:"9811100004", lat:28.6480, lng:77.1950, status:"busy",      speciality:"general",     last_seen:now },
+      // ── South Delhi / Lajpat Nagar & Saket ────────────────────────────────
+      { id:"picker-seed-0005", name:"Deepak Yadav",   contact:"9811100005", lat:28.5700, lng:77.2420, status:"available", speciality:"hazardous",   last_seen:now },
+      { id:"picker-seed-0006", name:"Sunita Rawat",   contact:"9811100006", lat:28.5260, lng:77.2090, status:"available", speciality:"organic",     last_seen:now },
+      // ── North Delhi / Rohini ───────────────────────────────────────────────
+      { id:"picker-seed-0007", name:"Vikram Nair",    contact:"9811100007", lat:28.7030, lng:77.1040, status:"available", speciality:"recyclable",  last_seen:now },
+      { id:"picker-seed-0008", name:"Pooja Chauhan",  contact:"9811100008", lat:28.7080, lng:77.1010, status:"available", speciality:"general",     last_seen:now },
+      // ── East Delhi / Mayur Vihar & Nehru Place ─────────────────────────────
+      { id:"picker-seed-0009", name:"Ramesh Gupta",   contact:"9811100009", lat:28.6090, lng:77.2960, status:"available", speciality:"general",     last_seen:now },
+      { id:"picker-seed-0010", name:"Kavita Sharma",  contact:"9811100010", lat:28.5500, lng:77.2530, status:"busy",      speciality:"hazardous",   last_seen:now },
+      // ── Dwarka / South-West Delhi ──────────────────────────────────────────
+      { id:"picker-seed-0011", name:"Sanjay Mehra",   contact:"9811100011", lat:28.5840, lng:77.0580, status:"available", speciality:"recyclable",  last_seen:now },
+      { id:"picker-seed-0012", name:"Lakshmi Verma",  contact:"9811100012", lat:28.5800, lng:77.0620, status:"available", speciality:"organic",     last_seen:now },
+    ]);
+  }
 }
 
 // ─── Spinner ──────────────────────────────────────────────────────────────────
@@ -207,7 +249,7 @@ function LandingPage({ onNavigate }) {
         width:"100%", height:"100%",
         objectFit:"cover",
         transform:"scale(1.35)",
-        opacity:0.28,
+        opacity:0.38,
         zIndex:0,
         pointerEvents:"none",
       }}>
