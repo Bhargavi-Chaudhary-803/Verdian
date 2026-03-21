@@ -99,7 +99,7 @@ function Spinner({ size=18 }) {
   );
 }
 
-// ─── LANDING PAGE (original App.jsx design) ───────────────────────────────────
+// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
 function LandingPage({ onNavigate }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -243,7 +243,7 @@ function LandingPage({ onNavigate }) {
   );
 }
 
-// ─── AUTH PAGE (Supabase real auth) ───────────────────────────────────────────
+// ─── AUTH PAGE ────────────────────────────────────────────────────────────────
 function AuthPage({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState("user");
@@ -262,7 +262,6 @@ function AuthPage({ onLogin }) {
         if (err) throw err;
         const { data:profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single();
         const actualRole = profile?.role || "user";
-        // Role mismatch guard — block wrong-portal login
         if (role === "admin" && actualRole !== "admin") {
           await supabase.auth.signOut();
           setError("Access denied. This account does not have admin privileges. Please sign in as Citizen.");
@@ -310,7 +309,6 @@ function AuthPage({ onLogin }) {
             {isLogin ? "Sign in to your Verdian account" : "Join the green revolution"}
           </p>
 
-          {/* Role toggle — always visible so admin can log in */}
           <div style={{ marginBottom:20 }}>
             <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block", fontWeight:600 }}>
               {isLogin ? "Sign in as" : "Register as"}
@@ -439,8 +437,7 @@ function TopBar({ title, user }) {
   );
 }
 
-
-// ─── USER DASHBOARD (realtime Supabase) ──────────────────────────────────────
+// ─── USER DASHBOARD ───────────────────────────────────────────────────────────
 function UserDashboard({ user }) {
   const [logs, setLogs]       = useState([]);
   const [profile, setProfile] = useState(user);
@@ -515,7 +512,7 @@ function UserDashboard({ user }) {
         </div>
       </div>
 
-      {/* KPI Cards with SVG rings */}
+      {/* KPI Cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
         {[
           { label:"Items Logged", value:loading?0:logs.length,               suffix:"",    icon:ScanLine,  color:C.blue,   max:50 },
@@ -622,7 +619,7 @@ function UserDashboard({ user }) {
   );
 }
 
-// ─── AI SCANNER (upload + manual only, no camera) ────────────────────────────
+// ─── AI SCANNER ───────────────────────────────────────────────────────────────
 function AIScanner({ user }) {
   const [phase, setPhase]             = useState("idle");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -787,7 +784,6 @@ function AIScanner({ user }) {
                       {saving?<Spinner size={14}/>:null} {saveMsg||"Save to Log"}
                     </button>
                   </div>
-                  {/* Location for map pin */}
                   {!saveMsg && (
                     <ScannerLocation scannerLocation={scannerLocation} setScannerLocation={setScannerLocation}/>
                   )}
@@ -827,8 +823,7 @@ function AIScanner({ user }) {
   );
 }
 
-
-// ─── LEAFLET MAP VIEW (light tiles, hotspot + waste log pins, GPS) ────────────
+// ─── MAP VIEW ─────────────────────────────────────────────────────────────────
 function MapView() {
   const [hotspots, setHotspots]               = useState([]);
   const [wasteLogs, setWasteLogs]             = useState([]);
@@ -841,7 +836,6 @@ function MapView() {
   const mapObjRef         = useRef(null);
   const hotspotMarkersRef = useRef([]);
   const logMarkersRef     = useRef([]);
-  // Use refs so render functions always have fresh data, no stale closures
   const hotspotsRef       = useRef([]);
   const wasteLogsRef      = useRef([]);
   const filterRef         = useRef("all");
@@ -851,7 +845,6 @@ function MapView() {
   const levelLabel = { high:"HIGH", med:"MED", low:"LOW" };
   const catColor   = { recyclable:"#3b82f6", organic:"#22c55e", hazardous:"#ef4444", general:"#6b8c78" };
 
-  // ── render functions — pure, always read from refs ──────────────────────────
   const renderHotspotMarkers = (map, spots, fil) => {
     const L = window.L; if (!L || !map) return;
     hotspotMarkersRef.current.forEach(m => map.removeLayer(m));
@@ -903,23 +896,20 @@ function MapView() {
       const marker = L.marker([log.lat, log.lng], { icon }).addTo(map);
       const date = new Date(log.created_at).toLocaleDateString("en-IN", { day:"numeric", month:"short" });
       marker.bindPopup(`<div style="min-width:160px;font-family:'DM Sans',sans-serif;">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#1a1a1a;">${log.item_name}</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#1a1a1a;">${log.item_name || "Waste item"}</div>
         <span style="padding:2px 8px;border-radius:100px;background:${col}15;border:1px solid ${col}40;color:${col};font-size:12px;font-weight:600;text-transform:capitalize;">${log.category}</span>
         <div style="font-size:12px;color:#777;margin-top:6px;">${log.address || ""}</div>
-        <div style="font-size:12px;color:#999;margin-top:3px;">${date} · +${log.points_earned} pts</div>
+        <div style="font-size:12px;color:#999;margin-top:3px;">${date} · +${log.points_earned || 0} pts</div>
       </div>`);
       marker.on("click", () => setSelectedLog(log));
       logMarkersRef.current.push(marker);
     });
-    // Honour showLogs toggle
     if (!showLogsRef.current) logMarkersRef.current.forEach(m => map.removeLayer(m));
   };
 
-  // ── Ensure Leaflet script is loaded, then initialise map ─────────────────────
   const ensureLeaflet = (cb) => {
     if (window.L) { cb(); return; }
     if (document.querySelector('script[src*="leaflet"]')) {
-      // Script already injected but not yet loaded — wait
       const check = setInterval(() => { if (window.L) { clearInterval(check); cb(); } }, 50);
       return;
     }
@@ -937,12 +927,10 @@ function MapView() {
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19,
     }).addTo(map);
     mapObjRef.current = map;
-    // Render with data already in refs (avoids stale closure)
     renderHotspotMarkers(map, hotspotsRef.current, filterRef.current);
     renderLogMarkers(map, wasteLogsRef.current);
   };
 
-  // ── Load data ─────────────────────────────────────────────────────────────────
   const loadMapData = async () => {
     const [{ data:hs }, { data:logs }] = await Promise.all([
       supabase.from("hotspots").select("*"),
@@ -953,7 +941,6 @@ function MapView() {
     ]);
     const hsData   = hs   || [];
     const logsData = logs || [];
-    // Update refs FIRST so render functions see fresh data
     hotspotsRef.current  = hsData;
     wasteLogsRef.current = logsData;
     setHotspots(hsData);
@@ -961,7 +948,6 @@ function MapView() {
     setLoading(false);
   };
 
-  // ── Initial load + realtime subscription ─────────────────────────────────────
   useEffect(() => {
     loadMapData();
     const sub = supabase.channel("map-logs-v2")
@@ -974,13 +960,11 @@ function MapView() {
     };
   }, []);
 
-  // ── Init map after loading completes ─────────────────────────────────────────
   useEffect(() => {
     if (loading || !mapRef.current) return;
     ensureLeaflet(initMap);
   }, [loading]);
 
-  // ── Re-render when data changes (after map already exists) ───────────────────
   useEffect(() => {
     hotspotsRef.current = hotspots;
     if (mapObjRef.current) renderHotspotMarkers(mapObjRef.current, hotspots, filterRef.current);
@@ -991,13 +975,11 @@ function MapView() {
     if (mapObjRef.current) renderLogMarkers(mapObjRef.current, wasteLogs);
   }, [wasteLogs]);
 
-  // ── Filter change ─────────────────────────────────────────────────────────────
   useEffect(() => {
     filterRef.current = filter;
     if (mapObjRef.current) renderHotspotMarkers(mapObjRef.current, hotspotsRef.current, filter);
   }, [filter]);
 
-  // ── Toggle log pins ───────────────────────────────────────────────────────────
   useEffect(() => {
     showLogsRef.current = showLogs;
     if (!mapObjRef.current) return;
@@ -1119,17 +1101,16 @@ function MapView() {
   );
 }
 
-
-// ─── SHARED: LocationPicker (GPS + manual) ───────────────────────────────────
+// ─── LOCATION PICKER ──────────────────────────────────────────────────────────
 function LocationPicker({ location, setLocation }) {
-  const [tab, setTab]             = useState("gps"); // "gps" | "manual"
+  const [tab, setTab]               = useState("gps");
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [gpsError, setGpsError]   = useState("");
-  const [manualLat, setManualLat] = useState("");
-  const [manualLng, setManualLng] = useState("");
+  const [gpsError, setGpsError]     = useState("");
+  const [manualLat, setManualLat]   = useState("");
+  const [manualLng, setManualLng]   = useState("");
   const [manualAddr, setManualAddr] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [searchErr, setSearchErr] = useState("");
+  const [searching, setSearching]   = useState(false);
+  const [searchErr, setSearchErr]   = useState("");
 
   const handleGetGPS = () => {
     if (!navigator.geolocation) { setGpsError("Geolocation not supported."); return; }
@@ -1145,7 +1126,7 @@ function LocationPicker({ location, setLocation }) {
         } catch(_){}
         setLocation({ lat, lng, address }); setGpsLoading(false);
       },
-      (err) => { setGpsError(err.code===1?"Location permission denied. Please enable in browser settings.":"Could not get location."); setGpsLoading(false); },
+      (err) => { setGpsError(err.code===1?"Location permission denied.":"Could not get location."); setGpsLoading(false); },
       { enableHighAccuracy:true, timeout:10000 }
     );
   };
@@ -1164,20 +1145,18 @@ function LocationPicker({ location, setLocation }) {
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(manualAddr)}&format=json&limit=1`);
       const data = await res.json();
-      if (!data.length) { setSearchErr("Address not found. Try a different search."); setSearching(false); return; }
+      if (!data.length) { setSearchErr("Address not found."); setSearching(false); return; }
       const { lat, lon, display_name } = data[0];
       setManualLat(parseFloat(lat).toFixed(5));
       setManualLng(parseFloat(lon).toFixed(5));
       setLocation({ lat:parseFloat(lat), lng:parseFloat(lon), address:display_name.split(",").slice(0,3).join(", ") });
-    } catch(_) { setSearchErr("Search failed. Try entering coordinates manually."); }
+    } catch(_) { setSearchErr("Search failed. Try coordinates."); }
     setSearching(false);
   };
 
   if (location) return (
     <div>
-      <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>
-        Location <span style={{ color:C.dim }}>(shown as pin on map)</span>
-      </label>
+      <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>Location <span style={{ color:C.dim }}>(shown as pin on map)</span></label>
       <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:10, background:"rgba(34,197,94,.08)", border:`1px solid ${C.dim}` }}>
         <MapPin size={15} color={C.accent}/>
         <div style={{ flex:1 }}>
@@ -1191,10 +1170,7 @@ function LocationPicker({ location, setLocation }) {
 
   return (
     <div>
-      <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>
-        Location <span style={{ color:C.dim }}>(optional — shown as pin on map)</span>
-      </label>
-      {/* Tab toggle */}
+      <label style={{ fontSize:12, color:C.muted, marginBottom:8, display:"block" }}>Location <span style={{ color:C.dim }}>(optional — shown as pin on map)</span></label>
       <div style={{ display:"flex", background:C.surface, borderRadius:8, padding:3, border:`1px solid ${C.border}`, marginBottom:12 }}>
         {[["gps","GPS Auto"],["manual","Manual Entry"]].map(([t,label])=>(
           <button key={t} onClick={()=>{ setTab(t); setGpsError(""); setSearchErr(""); }}
@@ -1205,7 +1181,6 @@ function LocationPicker({ location, setLocation }) {
           </button>
         ))}
       </div>
-
       {tab==="gps" && (
         <div>
           <button onClick={handleGetGPS} disabled={gpsLoading}
@@ -1216,24 +1191,19 @@ function LocationPicker({ location, setLocation }) {
             {gpsLoading?"Getting your location...":"Use my current GPS location"}
           </button>
           {gpsError&&<div style={{ fontSize:12, color:C.danger, marginTop:6 }}>{gpsError}</div>}
-          <div style={{ fontSize:12, color:C.muted, marginTop:6 }}>Your browser will ask for permission when clicked</div>
         </div>
       )}
-
       {tab==="manual" && (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {/* Address search */}
           <div style={{ display:"flex", gap:8 }}>
             <input style={{ flex:1, padding:"9px 12px", borderRadius:8, fontSize:13 }}
-              placeholder="Search address or place name..." value={manualAddr}
-              onChange={e=>setManualAddr(e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&handleAddressSearch()}/>
+              placeholder="Search address or place..." value={manualAddr}
+              onChange={e=>setManualAddr(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleAddressSearch()}/>
             <button onClick={handleAddressSearch} disabled={searching}
               style={{ padding:"9px 14px", borderRadius:8, background:C.accent, border:"none", color:"#0a0f0d", cursor:"pointer", fontWeight:600, fontSize:13, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
               {searching?<Spinner size={13}/>:null} Search
             </button>
           </div>
-          {/* Or manual lat/lng */}
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
             <div style={{ height:1, flex:1, background:C.border }}/>
             <span style={{ fontSize:12, color:C.muted }}>or enter coordinates</span>
@@ -1242,13 +1212,11 @@ function LocationPicker({ location, setLocation }) {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
             <div>
               <label style={{ fontSize:12, color:C.muted, marginBottom:4, display:"block" }}>Latitude</label>
-              <input style={{ width:"100%", padding:"9px 12px", borderRadius:8, fontSize:13 }}
-                placeholder="e.g. 28.6139" value={manualLat} onChange={e=>setManualLat(e.target.value)}/>
+              <input style={{ width:"100%", padding:"9px 12px", borderRadius:8, fontSize:13 }} placeholder="e.g. 28.6139" value={manualLat} onChange={e=>setManualLat(e.target.value)}/>
             </div>
             <div>
               <label style={{ fontSize:12, color:C.muted, marginBottom:4, display:"block" }}>Longitude</label>
-              <input style={{ width:"100%", padding:"9px 12px", borderRadius:8, fontSize:13 }}
-                placeholder="e.g. 77.2090" value={manualLng} onChange={e=>setManualLng(e.target.value)}/>
+              <input style={{ width:"100%", padding:"9px 12px", borderRadius:8, fontSize:13 }} placeholder="e.g. 77.2090" value={manualLng} onChange={e=>setManualLng(e.target.value)}/>
             </div>
           </div>
           <button onClick={handleManualSet}
@@ -1264,16 +1232,16 @@ function LocationPicker({ location, setLocation }) {
   );
 }
 
-// ─── SHARED: ScannerLocation (compact version for AI Scanner result) ──────────
+// ─── SCANNER LOCATION ─────────────────────────────────────────────────────────
 function ScannerLocation({ scannerLocation, setScannerLocation }) {
-  const [open, setOpen]           = useState(false);
-  const [tab, setTab]             = useState("gps");
+  const [open, setOpen]             = useState(false);
+  const [tab, setTab]               = useState("gps");
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [gpsError, setGpsError]   = useState("");
-  const [manualLat, setManualLat] = useState("");
-  const [manualLng, setManualLng] = useState("");
+  const [gpsError, setGpsError]     = useState("");
+  const [manualLat, setManualLat]   = useState("");
+  const [manualLng, setManualLng]   = useState("");
   const [manualAddr, setManualAddr] = useState("");
-  const [searching, setSearching] = useState(false);
+  const [searching, setSearching]   = useState(false);
 
   const handleGetGPS = () => {
     if (!navigator.geolocation) { setGpsError("Geolocation not supported."); return; }
@@ -1289,7 +1257,7 @@ function ScannerLocation({ scannerLocation, setScannerLocation }) {
         } catch(_){}
         setScannerLocation({ lat, lng, address }); setGpsLoading(false); setOpen(false);
       },
-      (err) => { setGpsError("Permission denied or unavailable."); setGpsLoading(false); },
+      () => { setGpsError("Permission denied or unavailable."); setGpsLoading(false); },
       { enableHighAccuracy:true, timeout:10000 }
     );
   };
@@ -1365,10 +1333,8 @@ function ScannerLocation({ scannerLocation, setScannerLocation }) {
                 </button>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
-                <input style={{ padding:"7px 10px", borderRadius:7, fontSize:12 }} placeholder="Lat e.g. 28.61"
-                  value={manualLat} onChange={e=>setManualLat(e.target.value)}/>
-                <input style={{ padding:"7px 10px", borderRadius:7, fontSize:12 }} placeholder="Lng e.g. 77.20"
-                  value={manualLng} onChange={e=>setManualLng(e.target.value)}/>
+                <input style={{ padding:"7px 10px", borderRadius:7, fontSize:12 }} placeholder="Lat e.g. 28.61" value={manualLat} onChange={e=>setManualLat(e.target.value)}/>
+                <input style={{ padding:"7px 10px", borderRadius:7, fontSize:12 }} placeholder="Lng e.g. 77.20" value={manualLng} onChange={e=>setManualLng(e.target.value)}/>
               </div>
               <button onClick={handleManualSet}
                 style={{ padding:"7px 0", borderRadius:7, border:`1px solid ${C.dim}`, background:"transparent", color:C.muted, cursor:"pointer", fontSize:12, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
@@ -1382,134 +1348,129 @@ function ScannerLocation({ scannerLocation, setScannerLocation }) {
   );
 }
 
-// ─── ADD WASTE (GPS location, saves to Supabase, realtime update) ─────────────
+// ─── ADD WASTE (FIXED — saves item_name + points_earned, GPS fallback) ────────
 function AddWaste({ user }) {
-  const [form, setForm]           = useState({ name:"", category:"", quantity:"1", unit:"items", notes:"" });
-  const [submitted, setSubmitted] = useState(false);
-  const [result, setResult]       = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState("");
-  const [location, setLocation]   = useState(null);
-  // GPS handled by LocationPicker component
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [notes, setNotes]     = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError]     = useState("");
+  const [pinned, setPinned]   = useState(false);
 
-  const handleSubmit = async () => {
-    if (!form.name||!form.category) { setError("Item name and category are required."); return; }
-    setLoading(true); setError("");
-    const pts = { recyclable:10, organic:5, hazardous:20, general:3 }[form.category];
-    const co2Map = { recyclable:0.3, organic:0.1, hazardous:0.5, general:0.05 };
-    const insertData = {
-      user_id:user.id, item_name:form.name, category:form.category,
-      quantity:parseFloat(form.quantity)||1, unit:form.unit, notes:form.notes, points_earned:pts,
-    };
-    if (location) { insertData.lat=location.lat; insertData.lng=location.lng; insertData.address=location.address; }
-    const { error:insertError } = await supabase.from("waste_logs").insert(insertData);
-    if (insertError) { setError(insertError.message); setLoading(false); return; }
-    const { data:prof } = await supabase.from("profiles").select("green_points,co2_saved").eq("id",user.id).single();
+  const pointsMap = { recyclable:10, organic:5, hazardous:20, general:3 };
+
+  const doInsert = async (lat, lng) => {
+    const cat = wasteCategories.find(c => c.id === selectedCategory);
+    const pts = pointsMap[selectedCategory] || 5;
+
+    const { error: err } = await supabase.from("waste_logs").insert([{
+      user_id:       user.id,
+      item_name:     cat?.label || selectedCategory,   // ← required for map popup
+      category:      selectedCategory,
+      notes:         notes,
+      lat:           lat,
+      lng:           lng,
+      points_earned: pts,                              // ← required for map popup
+      amount:        1,
+    }]);
+    if (err) throw err;
+
+    // Update profile green points
+    const { data: prof } = await supabase.from("profiles")
+      .select("green_points").eq("id", user.id).single();
     await supabase.from("profiles").update({
-      green_points:(prof?.green_points||0)+pts,
-      co2_saved:Math.round(((prof?.co2_saved||0)+(co2Map[form.category]||0.1))*100)/100,
-    }).eq("id",user.id);
-    setResult({...form, pts, cat:wasteCategories.find(c=>c.id===form.category), location});
-    setSubmitted(true); setLoading(false);
+      green_points: (prof?.green_points || 0) + pts,
+    }).eq("id", user.id);
   };
 
-  if (submitted&&result) return (
-    <div className="fade-in" style={{ padding:28 }}>
-      <div style={{ maxWidth:520, margin:"0 auto" }}>
-        <div className="card glow" style={{ padding:36, textAlign:"center" }}>
-          <div style={{ width:72, height:72, borderRadius:"50%", background:C.accentGlow, border:`1px solid ${C.accent}`, margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <CheckCircle size={32} color={C.accent}/>
-          </div>
-          <div className="syne" style={{ fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}>Saved to Supabase!</div>
-          <div style={{ color:C.muted, marginBottom:8 }}>{result.name} · {result.quantity} {result.unit}</div>
-          {result.location && (
-            <div style={{ fontSize:12, color:C.accent, marginBottom:16, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <MapPin size={12}/> {result.location.address}
-            </div>
-          )}
-          <div style={{ display:"flex", gap:12, justifyContent:"center", marginBottom:24 }}>
-            <div style={{ padding:"10px 20px", borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}` }}>
-              <div className="syne" style={{ fontSize:22, fontWeight:800, color:C.accent }}>+{result.pts}</div>
-              <div style={{ fontSize:12, color:C.muted }}>Points</div>
-            </div>
-            <div style={{ padding:"10px 20px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}` }}>
-              <div className="syne" style={{ fontSize:16, fontWeight:800, color:C.text }}>{result.cat?.label}</div>
-              <div style={{ fontSize:12, color:C.muted }}>Category</div>
-            </div>
-          </div>
-          <button className="btn-primary" style={{ padding:"12px 32px", borderRadius:10, fontSize:14 }}
-            onClick={()=>{ setSubmitted(false); setForm({name:"",category:"",quantity:"1",unit:"items",notes:""}); setLocation(null); }}>
-            Log Another
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const handleAdd = async () => {
+    if (!selectedCategory) { setError("Please select a category."); return; }
+    setLoading(true); setError(""); setSuccess(false); setPinned(false);
+
+    if (!navigator.geolocation) {
+      // No GPS support at all — save without coordinates
+      try {
+        await doInsert(null, null);
+        setSuccess(true); setSelectedCategory(null); setNotes("");
+      } catch(e) { setError(e.message); }
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          await doInsert(pos.coords.latitude, pos.coords.longitude);
+          setSuccess(true); setPinned(true); setSelectedCategory(null); setNotes("");
+        } catch(err) { setError(err.message); }
+        setLoading(false);
+      },
+      async () => {
+        // GPS denied — still save the log, just without map coordinates
+        try {
+          await doInsert(null, null);
+          setSuccess(true); setSelectedCategory(null); setNotes("");
+          setError("Location access denied — waste logged without map pin.");
+        } catch(e) { setError(e.message); }
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   return (
-    <div className="fade-in" style={{ padding:28 }}>
-      <div style={{ maxWidth:600, margin:"0 auto" }}>
-        <div className="card" style={{ padding:32 }}>
-          <div className="syne" style={{ fontWeight:800, fontSize:20, color:C.text, marginBottom:6 }}>Add Waste Item</div>
-          <p style={{ color:C.muted, fontSize:13, marginBottom:28 }}>Log a waste item — saved directly to Supabase</p>
-          <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-            <div>
-              <label style={{ fontSize:12, color:C.muted, marginBottom:6, display:"block" }}>Item Name *</label>
-              <input style={{ width:"100%", padding:"11px 14px", borderRadius:10, fontSize:14 }}
-                placeholder="e.g. Plastic bottle, food scraps..." value={form.name}
-                onChange={e=>setForm({...form,name:e.target.value})}/>
-            </div>
-            <div>
-              <label style={{ fontSize:12, color:C.muted, marginBottom:10, display:"block" }}>Waste Category *</label>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10 }}>
-                {wasteCategories.map(wc=>(
-                  <div key={wc.id} onClick={()=>setForm({...form,category:wc.id})}
-                    style={{ padding:14, borderRadius:12, cursor:"pointer", display:"flex", alignItems:"center", gap:10, transition:"all .2s",
-                      background:form.category===wc.id?`${wc.color}18`:C.surface, border:`1px solid ${form.category===wc.id?wc.color:C.border}` }}>
-                    <wc.icon size={16} color={wc.color}/>
-                    <span style={{ fontSize:14, color:form.category===wc.id?wc.color:C.text, fontWeight:form.category===wc.id?600:400 }}>{wc.label}</span>
-                    {form.category===wc.id&&<CheckCircle size={14} color={wc.color} style={{ marginLeft:"auto" }}/>}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <label style={{ fontSize:12, color:C.muted, marginBottom:6, display:"block" }}>Quantity</label>
-                <input type="number" style={{ width:"100%", padding:"11px 14px", borderRadius:10, fontSize:14 }}
-                  value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})}/>
-              </div>
-              <div>
-                <label style={{ fontSize:12, color:C.muted, marginBottom:6, display:"block" }}>Unit</label>
-                <select style={{ width:"100%", padding:"11px 14px", borderRadius:10, fontSize:14 }}
-                  value={form.unit} onChange={e=>setForm({...form,unit:e.target.value})}>
-                  {["items","kg","litres","bags"].map(u=><option key={u}>{u}</option>)}
-                </select>
-              </div>
-            </div>
+    <div className="fade-in" style={{ padding:28, maxWidth:600 }}>
+      <div className="card" style={{ padding:32 }}>
+        <h2 className="syne" style={{ fontSize:22, fontWeight:800, marginBottom:8, color:C.text }}>Log New Waste</h2>
+        <p style={{ color:C.muted, fontSize:14, marginBottom:24 }}>
+          Your location will be pinned to the city map automatically if GPS is enabled.
+        </p>
 
-            {/* Location — GPS or Manual */}
-            <LocationPicker location={location} setLocation={setLocation}/>
-
-            <div>
-              <label style={{ fontSize:12, color:C.muted, marginBottom:6, display:"block" }}>Notes (optional)</label>
-              <textarea style={{ width:"100%", padding:"11px 14px", borderRadius:10, fontSize:14, resize:"vertical", minHeight:80, background:C.surface, border:`1px solid ${C.border}`, color:C.text }}
-                placeholder="Any details..." value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:24 }}>
+          {wasteCategories.map(cat => (
+            <div key={cat.id} onClick={() => setSelectedCategory(cat.id)}
+              style={{
+                padding:16, borderRadius:12,
+                border:`1px solid ${selectedCategory===cat.id ? cat.color : C.border}`,
+                background:selectedCategory===cat.id ? `${cat.color}10` : C.surface,
+                cursor:"pointer", transition:"all .2s"
+              }}>
+              <cat.icon size={20} color={selectedCategory===cat.id ? cat.color : C.muted} />
+              <div style={{ fontWeight:600, marginTop:8, fontSize:14, color:selectedCategory===cat.id ? C.text : C.muted }}>{cat.label}</div>
+              <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>{cat.examples[0]}, {cat.examples[1]}…</div>
             </div>
-            {error&&<div className="error-box">{error}</div>}
-            <button className="btn-primary glow" style={{ padding:"14px 0", borderRadius:12, fontSize:15, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
-              onClick={handleSubmit} disabled={loading}>
-              {loading&&<Spinner size={16}/>} Save to Database →
-            </button>
+          ))}
+        </div>
+
+        <textarea
+          placeholder="Optional notes (e.g. 'Large pile near park entrance')"
+          style={{ width:"100%", padding:14, borderRadius:10, minHeight:100, marginBottom:20, fontSize:14 }}
+          value={notes} onChange={e => setNotes(e.target.value)}
+        />
+
+        {error   && <div className="error-box"   style={{ marginBottom:16 }}>{error}</div>}
+        {success && (
+          <div className="success-box" style={{ marginBottom:16 }}>
+            {pinned ? "✓ Waste logged and pinned to the map!" : "✓ Waste logged successfully!"}
           </div>
+        )}
+
+        <button
+          className="btn-primary glow"
+          style={{ width:"100%", padding:"14px 0", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontSize:15 }}
+          onClick={handleAdd} disabled={loading}>
+          {loading ? <Spinner size={18} /> : <><MapPin size={18} /> Log &amp; Pin Waste</>}
+        </button>
+
+        <div style={{ marginTop:12, fontSize:12, color:C.muted, textAlign:"center" }}>
+          GPS will be requested automatically. If denied, the waste is still logged without a map pin.
         </div>
       </div>
     </div>
   );
 }
 
-
-// ─── ANALYTICS (live from Supabase) ──────────────────────────────────────────
+// ─── ANALYTICS ───────────────────────────────────────────────────────────────
 function Analytics({ isAdmin, user }) {
   const [logs, setLogs]               = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -1638,7 +1599,7 @@ function Analytics({ isAdmin, user }) {
   );
 }
 
-// ─── ADMIN DASHBOARD (from original App.jsx, with live Supabase data) ─────────
+// ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
 function AdminDashboard() {
   const [hotspots, setHotspots]   = useState([]);
   const [userCount, setUserCount] = useState(0);
@@ -1664,15 +1625,14 @@ function AdminDashboard() {
 
   const levelColor = { high:C.danger, med:C.warn, low:C.accent };
   const adminStats = [
-    { label:"Active Zones",    value:loading?"—":hotspots.length,               icon:MapPin,      color:C.blue,   delta:"live" },
-    { label:"Registered Users",value:loading?"—":userCount,                     icon:Users,       color:C.accent, delta:"live" },
-    { label:"Waste Logs Total",value:loading?"—":logCount,                      icon:Trash2,      color:C.muted,  delta:"live" },
-    { label:"Critical Zones",  value:loading?"—":hotspots.filter(h=>h.level==="high").length, icon:AlertTriangle, color:C.danger, delta:"live" },
+    { label:"Active Zones",     value:loading?"—":hotspots.length,                             icon:MapPin,        color:C.blue,   delta:"live" },
+    { label:"Registered Users", value:loading?"—":userCount,                                   icon:Users,         color:C.accent, delta:"live" },
+    { label:"Waste Logs Total", value:loading?"—":logCount,                                    icon:Trash2,        color:C.muted,  delta:"live" },
+    { label:"Critical Zones",   value:loading?"—":hotspots.filter(h=>h.level==="high").length, icon:AlertTriangle, color:C.danger, delta:"live" },
   ];
 
   return (
     <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
-      {/* Admin header */}
       <div className="card" style={{ padding:24, background:"linear-gradient(135deg,#1a0f0f 0%,#200f0f 100%)", borderColor:"rgba(239,68,68,.2)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
@@ -1702,7 +1662,6 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* KPIs */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
         {adminStats.map((s,i)=>(
           <div key={i} className="card" style={{ padding:20 }}>
@@ -1718,7 +1677,6 @@ function AdminDashboard() {
 
       {loading ? <div style={{ textAlign:"center", padding:40 }}><Spinner size={32}/></div> : (<>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-          {/* Critical zones */}
           <div className="card" style={{ padding:24 }}>
             <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:16 }}>Critical Zones</div>
             {hotspots.filter(h=>h.level==="high").length===0 ? (
@@ -1739,7 +1697,6 @@ function AdminDashboard() {
               </div>
             ))}
           </div>
-          {/* Today's Schedule */}
           <div className="card" style={{ padding:24 }}>
             <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:16 }}>Today's Schedule</div>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -1756,8 +1713,6 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
-
-        {/* All hotspots */}
         <div className="card" style={{ padding:24 }}>
           <div className="syne" style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:16 }}>All Hotspots</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -1880,8 +1835,8 @@ function AppShell({ user, onLogout }) {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [page, setPage]     = useState("landing");
-  const [user, setUser]     = useState(null);
+  const [page, setPage]       = useState("landing");
+  const [user, setUser]       = useState(null);
   const [booting, setBooting] = useState(true);
 
   useEffect(() => {
