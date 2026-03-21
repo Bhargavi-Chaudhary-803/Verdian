@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
-  Leaf, Trash2, MapPin, BarChart3, Camera, LogOut,
-  User, Bell, ChevronRight, Upload, CheckCircle, AlertTriangle,
+  Leaf, Trash2, MapPin, BarChart3, LogOut,
+  User, Bell, Upload, CheckCircle, AlertTriangle,
   Recycle, TrendingUp, TrendingDown, Clock, Shield, Users,
   Map, ScanLine, Plus, X, Star, Activity, Download,
   Home, Radio, Settings, Loader
@@ -24,6 +24,15 @@ const C = {
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+  .leaflet-container { border-radius: 12px; }
+  .leaflet-popup-content-wrapper { background: #162019; border: 1px solid #1e3028; color: #e8f5ee; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  .leaflet-popup-tip { background: #162019; }
+  .leaflet-popup-content { margin: 14px 18px; font-family: 'DM Sans', sans-serif; }
+  .leaflet-control-zoom a { background: #162019 !important; color: #22c55e !important; border-color: #1e3028 !important; }
+  .leaflet-control-zoom a:hover { background: #1e3028 !important; }
+  .leaflet-control-attribution { background: rgba(10,15,13,0.8) !important; color: #6b8c78 !important; font-size: 10px; }
+  .leaflet-control-attribution a { color: #22c55e !important; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: ${C.bg}; color: ${C.text}; font-family: 'DM Sans', sans-serif; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; }
@@ -508,10 +517,13 @@ function AIScanner({ user }) {
   const [phase,       setPhase]       = useState("idle");
   const [selectedItem,setSelectedItem]= useState(null);
   const [manualInput, setManualInput] = useState("");
-  const [activeTab,   setActiveTab]   = useState("camera");
+  const [activeTab,   setActiveTab]   = useState("upload");
   const [history,     setHistory]     = useState([]);
   const [saving,      setSaving]      = useState(false);
   const [saveMsg,     setSaveMsg]     = useState("");
+  const [uploadFile,  setUploadFile]  = useState(null);
+  const [uploadPreview, setUploadPreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     supabase.from("waste_logs").select("*").eq("user_id", user.id)
@@ -526,9 +538,14 @@ function AIScanner({ user }) {
     general:    { color:C.muted,  label:"🗑️ General",    bin:"Black Bin" },
   };
 
-  const startScan = (item) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadFile(file);
+    setUploadPreview(URL.createObjectURL(file));
+    // Simulate AI scan on upload
     setPhase("scanning"); setSaveMsg("");
-    setSelectedItem(item || aiWasteItems[Math.floor(Math.random() * aiWasteItems.length)]);
+    setSelectedItem(aiWasteItems[Math.floor(Math.random() * aiWasteItems.length)]);
     setTimeout(() => setPhase("result"), 2400);
   };
 
@@ -580,7 +597,7 @@ function AIScanner({ user }) {
     setSaving(false);
   };
 
-  const reset = () => { setPhase("idle"); setSelectedItem(null); setManualInput(""); setSaveMsg(""); };
+  const reset = () => { setPhase("idle"); setSelectedItem(null); setManualInput(""); setSaveMsg(""); setUploadFile(null); setUploadPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
 
   return (
     <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
@@ -590,26 +607,32 @@ function AIScanner({ user }) {
           <p style={{ color:C.muted, fontSize:13, marginBottom:24 }}>Classify waste and save it directly to your Supabase log.</p>
 
           <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-            {["camera","upload","manual"].map(t => (
+            {["upload","manual"].map(t => (
               <button key={t} onClick={() => { setActiveTab(t); reset(); }}
                 className={`btn-ghost ${activeTab === t ? "tab-active" : ""}`}
                 style={{ padding:"7px 16px", borderRadius:8, fontSize:13 }}>
-                {t === "camera" ? "📷 Camera" : t === "upload" ? "📁 Upload" : "✏️ Manual"}
+                {t === "upload" ? "📁 Upload Image" : "✏️ Manual Input"}
               </button>
             ))}
           </div>
 
           {phase === "idle" && (
-            activeTab !== "manual" ? (
-              <div style={{ border:`2px dashed ${C.dim}`, borderRadius:16, padding:48, textAlign:"center", cursor:"pointer", transition:"all .2s" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
-                onMouseLeave={e => e.currentTarget.style.borderColor = C.dim}
-                onClick={() => startScan()}>
-                <div style={{ width:64, height:64, borderRadius:16, background:C.accentGlow, border:`1px solid ${C.dim}`, margin:"0 auto 16px", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  {activeTab === "camera" ? <Camera size={28} color={C.accent} /> : <Upload size={28} color={C.accent} />}
+            activeTab === "upload" ? (
+              <div>
+                <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleFileChange} />
+                <div style={{ border:`2px dashed ${C.dim}`, borderRadius:16, padding:48, textAlign:"center", cursor:"pointer", transition:"all .2s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.dim}
+                  onClick={() => fileInputRef.current?.click()}>
+                  <div style={{ width:64, height:64, borderRadius:16, background:C.accentGlow, border:`1px solid ${C.dim}`, margin:"0 auto 16px", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <Upload size={28} color={C.accent} />
+                  </div>
+                  <div style={{ fontWeight:600, color:C.text, marginBottom:6 }}>Upload Waste Image</div>
+                  <div style={{ fontSize:13, color:C.muted }}>Click to browse · JPG, PNG, WEBP supported</div>
+                  <div style={{ marginTop:12, fontSize:11, color:C.muted, padding:"6px 14px", background:C.accentGlow, borderRadius:100, display:"inline-block" }}>
+                    AI will classify automatically on upload
+                  </div>
                 </div>
-                <div style={{ fontWeight:600, color:C.text, marginBottom:6 }}>{activeTab === "camera" ? "Open Camera" : "Upload Image"}</div>
-                <div style={{ fontSize:13, color:C.muted }}>Click to simulate AI scan</div>
               </div>
             ) : (
               <div>
@@ -719,12 +742,15 @@ function AIScanner({ user }) {
   );
 }
 
-// ─── MAP VIEW ─────────────────────────────────────────────────────────────────
+// ─── LEAFLET MAP VIEW ────────────────────────────────────────────────────────
 function MapView() {
   const [hotspots,        setHotspots]        = useState([]);
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [filter,          setFilter]          = useState("all");
   const [loading,         setLoading]         = useState(true);
+  const mapRef     = useRef(null);
+  const mapObjRef  = useRef(null);
+  const markersRef = useRef([]);
 
   useEffect(() => {
     supabase.from("hotspots").select("*").then(({ data }) => {
@@ -733,71 +759,115 @@ function MapView() {
     });
   }, []);
 
-  const levelColor = { high:C.danger, med:C.warn, low:C.accent };
-  const grid = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 14; c++) {
-      const hs = hotspots.find(h => {
-        const row = Math.round((h.lat - 28.5) / 0.03);
-        const col = Math.round((h.lng - 77.05) / 0.025);
-        return row === r && col === c;
+  // Dynamically load Leaflet and init map
+  useEffect(() => {
+    if (loading || !mapRef.current || mapObjRef.current) return;
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => initMap();
+    document.head.appendChild(script);
+
+    return () => {
+      if (mapObjRef.current) { mapObjRef.current.remove(); mapObjRef.current = null; }
+    };
+  }, [loading]);
+
+  const levelColor = { high:"#ef4444", med:"#f59e0b", low:"#22c55e" };
+  const levelLabel = { high:"HIGH", med:"MED", low:"LOW" };
+
+  const initMap = () => {
+    if (!window.L || !mapRef.current || mapObjRef.current) return;
+    const L = window.L;
+
+    const map = L.map(mapRef.current, {
+      center: [28.63, 77.22],
+      zoom: 11,
+      zoomControl: true,
+    });
+
+    // Dark tile layer
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 19,
+    }).addTo(map);
+
+    mapObjRef.current = map;
+    renderMarkers(map, hotspots, "all");
+  };
+
+  const renderMarkers = (map, spots, fil) => {
+    const L = window.L;
+    if (!L || !map) return;
+    // Clear old markers
+    markersRef.current.forEach(m => map.removeLayer(m));
+    markersRef.current = [];
+
+    spots.filter(h => fil === "all" || h.level === fil).forEach(h => {
+      const col = levelColor[h.level] || "#22c55e";
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:28px;height:28px;border-radius:50%;background:${col}30;border:2px solid ${col};display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 8px ${col};"></div>
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -16],
       });
-      grid.push({ r, c, hotspot: hs || null });
+
+      const marker = L.marker([h.lat, h.lng], { icon }).addTo(map);
+      marker.bindPopup(`
+        <div style="min-width:180px;">
+          <div style="font-family:Syne,sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;">${h.name}</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <span style="padding:2px 10px;border-radius:100px;background:${col}20;border:1px solid ${col}40;color:${col};font-size:11px;font-weight:700;">${levelLabel[h.level]}</span>
+            <span style="font-size:12px;color:#6b8c78;">${h.trend === "up" ? "↑ Increasing" : "↓ Decreasing"}</span>
+          </div>
+          <div style="font-size:13px;color:#6b8c78;margin-bottom:4px;">Volume: <span style="color:#e8f5ee;font-weight:600;">${h.volume} kg</span></div>
+          <div style="font-size:13px;color:#6b8c78;">Trucks needed: <span style="color:#e8f5ee;font-weight:600;">${h.collections_needed}</span></div>
+        </div>
+      `);
+      marker.on("click", () => setSelectedHotspot(h));
+      markersRef.current.push(marker);
+    });
+  };
+
+  // Re-render markers when filter changes
+  useEffect(() => {
+    if (mapObjRef.current && hotspots.length > 0) {
+      renderMarkers(mapObjRef.current, hotspots, filter);
     }
-  }
+  }, [filter, hotspots]);
 
   return (
     <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:20 }}>
         <div className="card" style={{ padding:24 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
             <div>
               <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text }}>Delhi Waste Map</div>
-              <div style={{ fontSize:12, color:C.muted }}>Live data from Supabase</div>
+              <div style={{ fontSize:12, color:C.muted }}>Live hotspots from Supabase · Leaflet map</div>
             </div>
             <div style={{ display:"flex", gap:6 }}>
               {["all","high","med","low"].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`btn-ghost ${filter === f ? "tab-active" : ""}`}
                   style={{ padding:"5px 12px", borderRadius:8, fontSize:11 }}>
-                  {f === "all" ? "All" : f === "high" ? "🔴" : f === "med" ? "🟡" : "🟢"}
+                  {f === "all" ? "All" : f === "high" ? "🔴 High" : f === "med" ? "🟡 Med" : "🟢 Low"}
                 </button>
               ))}
             </div>
           </div>
 
           {loading ? (
-            <div style={{ textAlign:"center", padding:60 }}><Spinner size={32} /></div>
+            <div style={{ height:480, display:"flex", alignItems:"center", justifyContent:"center" }}><Spinner size={32} /></div>
           ) : (
-            <div style={{ background:"#0d1a10", borderRadius:12, padding:16 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(14, 1fr)", gap:3 }}>
-                {grid.map((cell, i) => {
-                  const hs = cell.hotspot;
-                  const visible = !hs || filter === "all" || filter === hs.level;
-                  if (hs && visible) {
-                    const col = levelColor[hs.level];
-                    return (
-                      <div key={i} className="map-cell"
-                        style={{ aspectRatio:"1", borderRadius:6, background:`${col}30`, border:`1px solid ${col}60`, display:"flex", alignItems:"center", justifyContent:"center" }}
-                        onClick={() => setSelectedHotspot(hs)}>
-                        <div style={{ width:10, height:10, borderRadius:"50%", background:col, boxShadow:`0 0 8px ${col}` }} />
-                      </div>
-                    );
-                  }
-                  return <div key={i} style={{ aspectRatio:"1", borderRadius:6, background:"rgba(34,197,94,0.03)", border:"1px solid rgba(34,197,94,0.06)" }} />;
-                })}
-              </div>
-              <div style={{ display:"flex", gap:16, marginTop:14, justifyContent:"center" }}>
-                {[["high","High"],["med","Medium"],["low","Low"]].map(([l,label]) => (
-                  <div key={l} style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:C.muted }}>
-                    <div style={{ width:8, height:8, borderRadius:"50%", background:levelColor[l] }} />{label}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <div ref={mapRef} style={{ height:480, borderRadius:12, overflow:"hidden", background:"#0d1a10" }} />
           )}
         </div>
 
+        {/* Side panel */}
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
           {selectedHotspot ? (
             <div className="card fade-in" style={{ padding:22 }}>
@@ -820,7 +890,7 @@ function MapView() {
             </div>
           ) : (
             <div className="card" style={{ padding:18 }}>
-              <div style={{ fontSize:13, color:C.muted }}>Click a zone on the map for details</div>
+              <div style={{ fontSize:13, color:C.muted }}>Click a marker on the map for zone details</div>
             </div>
           )}
 
@@ -829,7 +899,10 @@ function MapView() {
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {hotspots.filter(h => filter === "all" || h.level === filter).map((h,i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}`, cursor:"pointer" }}
-                  onClick={() => setSelectedHotspot(h)}>
+                  onClick={() => {
+                    setSelectedHotspot(h);
+                    if (mapObjRef.current) mapObjRef.current.setView([h.lat, h.lng], 13);
+                  }}>
                   <div style={{ width:8, height:8, borderRadius:"50%", background:levelColor[h.level], flexShrink:0 }} />
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:12, fontWeight:600, color:C.text }}>{h.name}</div>
@@ -1343,77 +1416,4 @@ function AppShell({ user, onLogout }) {
       case "scanner":         return <AIScanner user={user} />;
       case "map":             return <MapView />;
       case "hotspots":        return <HotspotsPage />;
-      case "add-waste":       return <AddWaste user={user} />;
-      case "analytics":       return <Analytics isAdmin={user.role==="admin"} user={user} />;
-      case "schedule":        return <Analytics isAdmin={true} user={user} />;
-      case "users":           return (
-        <div className="fade-in" style={{ padding:28 }}>
-          <div className="card" style={{ padding:24 }}>
-            <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text, marginBottom:8 }}>Registered Citizens</div>
-            <div style={{ color:C.muted, fontSize:14 }}>User management — data lives in your Supabase profiles table.</div>
-          </div>
-        </div>
-      );
-      default: return <div style={{ padding:28, color:C.muted }}>Coming soon</div>;
-    }
-  };
-
-  return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden" }}>
-      <Sidebar user={user} activeSection={section} setActiveSection={setSection} onLogout={onLogout} />
-      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
-        <TopBar title={sectionTitles[section]||"Verdian"} user={user} />
-        <div style={{ flex:1, overflowY:"auto" }}>{renderSection()}</div>
-      </div>
-    </div>
-  );
-}
-
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
-export default function App() {
-  const [page,    setPage]    = useState("landing");
-  const [user,    setUser]    = useState(null);
-  const [booting, setBooting] = useState(true);
-
-  // Restore session on refresh
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-        setUser({ id:session.user.id, email:session.user.email, name:profile?.name||session.user.email.split("@")[0], role:profile?.role||"user", ...profile });
-        setPage("app");
-      }
-      setBooting(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT") { setUser(null); setPage("landing"); }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null); setPage("landing");
-  };
-
-  if (booting) return (
-    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:16 }}>
-      <style>{css}</style>
-      <div style={{ width:48, height:48, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <Recycle size={24} color={C.accent} />
-      </div>
-      <Spinner size={24} />
-      <div style={{ fontSize:13, color:C.muted }}>Connecting to Supabase...</div>
-    </div>
-  );
-
-  return (
-    <>
-      <style>{css}</style>
-      {page === "landing" && <LandingPage onNavigate={setPage} />}
-      {page === "auth"    && <AuthPage onLogin={(u) => { setUser(u); setPage("app"); }} />}
-      {page === "app" && user && <AppShell user={user} onLogout={handleLogout} />}
-    </>
-  );
-}
+      case "add-waste":       return <AddWaste user
