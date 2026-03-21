@@ -138,7 +138,7 @@ function LandingPage({ onNavigate }) {
   const stats = [
     { val:"2.1B",    label:"Tonnes landfilled yearly",  icon:"🌍" },
     { val:"67%",     label:"Recyclables misclassified",  icon:"♻️" },
-    { val:"₹48K Cr", label:"Recycling value lost",       icon:"💸" },
+    { val:"₹48K", label:"Recycling value lost",       icon:"💸" },
     { val:"94%",     label:"Our AI accuracy",             icon:"🤖" },
   ];
 
