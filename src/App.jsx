@@ -23,7 +23,7 @@ const C = {
 };
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
   @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
   .leaflet-container { border-radius: 12px; }
   .leaflet-popup-content-wrapper { background: #ffffff; border: 1px solid #e2e8f0; color: #1a202c; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
@@ -58,7 +58,7 @@ const C = {
 };
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
   @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
   .leaflet-container { border-radius: 12px; }
   .leaflet-popup-content-wrapper { background: #162019; border: 1px solid #1e3028; color: #e8f5ee; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
@@ -72,7 +72,7 @@ const css = `
   body { background: ${C.bg}; color: ${C.text}; font-family: 'DM Sans', sans-serif; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; }
   ::-webkit-scrollbar-thumb { background: ${C.dim}; border-radius: 2px; }
-  .syne { font-family: 'Syne', sans-serif; }
+  .syne { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.02em; }
   .glow { box-shadow: 0 0 24px ${C.accentGlow}, inset 0 1px 0 rgba(34,197,94,0.1); }
   .glow-sm { box-shadow: 0 0 12px rgba(34,197,94,0.2); }
   .pulse-dot { width:8px;height:8px;background:${C.accent};border-radius:50%;animation:pulse 2s infinite; }
@@ -186,7 +186,7 @@ function LandingPage({ onNavigate }) {
             <div className="pulse-dot" />
             <span style={{ fontSize:12, color:C.accent, fontWeight:500 }}>AI-Powered Waste Intelligence Platform</span>
           </div>
-          <h1 className="syne" style={{ fontSize:"clamp(40px,7vw,80px)", fontWeight:800, lineHeight:1.05, marginBottom:24, color:C.text }}>
+          <h1 className="syne" style={{ fontSize:"clamp(32px,4.5vw,58px)", fontWeight:700, lineHeight:1.15, marginBottom:24, color:C.text }}>
             Smarter Waste.<br /><span style={{ color:C.accent }}>Greener Cities.</span>
           </h1>
           <p style={{ fontSize:18, color:C.muted, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
