@@ -207,7 +207,7 @@ function LandingPage({ onNavigate }) {
         width:"100%", height:"100%",
         objectFit:"cover",
         transform:"scale(1.35)",
-        opacity:0.2,
+        opacity:0.38,
         zIndex:0,
         pointerEvents:"none",
       }}>
