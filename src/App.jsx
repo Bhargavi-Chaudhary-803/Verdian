@@ -1416,4 +1416,77 @@ function AppShell({ user, onLogout }) {
       case "scanner":         return <AIScanner user={user} />;
       case "map":             return <MapView />;
       case "hotspots":        return <HotspotsPage />;
-      case "add-waste":       return <AddWaste user
+      case "add-waste":       return <AddWaste user={user} />;
+      case "analytics":       return <Analytics isAdmin={user.role==="admin"} user={user} />;
+      case "schedule":        return <Analytics isAdmin={true} user={user} />;
+      case "users":           return (
+        <div className="fade-in" style={{ padding:28 }}>
+          <div className="card" style={{ padding:24 }}>
+            <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text, marginBottom:8 }}>Registered Citizens</div>
+            <div style={{ color:C.muted, fontSize:14 }}>User management — data lives in your Supabase profiles table.</div>
+          </div>
+        </div>
+      );
+      default: return <div style={{ padding:28, color:C.muted }}>Coming soon</div>;
+    }
+  };
+
+  return (
+    <div style={{ display:"flex", height:"100vh", overflow:"hidden" }}>
+      <Sidebar user={user} activeSection={section} setActiveSection={setSection} onLogout={onLogout} />
+      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+        <TopBar title={sectionTitles[section]||"Verdian"} user={user} />
+        <div style={{ flex:1, overflowY:"auto" }}>{renderSection()}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [page,    setPage]    = useState("landing");
+  const [user,    setUser]    = useState(null);
+  const [booting, setBooting] = useState(true);
+
+  // Restore session on refresh
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+        setUser({ id:session.user.id, email:session.user.email, name:profile?.name||session.user.email.split("@")[0], role:profile?.role||"user", ...profile });
+        setPage("app");
+      }
+      setBooting(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT") { setUser(null); setPage("landing"); }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null); setPage("landing");
+  };
+
+  if (booting) return (
+    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:16 }}>
+      <style>{css}</style>
+      <div style={{ width:48, height:48, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <Recycle size={24} color={C.accent} />
+      </div>
+      <Spinner size={24} />
+      <div style={{ fontSize:13, color:C.muted }}>Connecting to Supabase...</div>
+    </div>
+  );
+
+  return (
+    <>
+      <style>{css}</style>
+      {page === "landing" && <LandingPage onNavigate={setPage} />}
+      {page === "auth"    && <AuthPage onLogin={(u) => { setUser(u); setPage("app"); }} />}
+      {page === "app" && user && <AppShell user={user} onLogout={handleLogout} />}
+    </>
+  );
+}
