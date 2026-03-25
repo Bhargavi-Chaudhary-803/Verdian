@@ -1,6 +1,6 @@
 # Verdian, A Smart Waste Management Platform
 
-AI-powered waste segregation and recycling optimization system.
+Hey! We created a AI-powered waste segregation and recycling optimization system to help the Indian Society!
 
 ## Features
 
