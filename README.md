@@ -1,4 +1,4 @@
-# 🌿 Verdian — Smart Waste Management Platform
+# Verdian, A Smart Waste Management Platform
 
 AI-powered waste segregation and recycling optimization system.
 
@@ -13,15 +13,6 @@ AI-powered waste segregation and recycling optimization system.
 - **Add Waste** — Manual waste logging with point rewards
 - **Analytics** — Weekly charts, category breakdown, KPIs
 - **Admin Dashboard** — Control centre, critical zones, schedule, leaderboard
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
-```
-
-Then open http://localhost:5173
 
 ## Demo
 
