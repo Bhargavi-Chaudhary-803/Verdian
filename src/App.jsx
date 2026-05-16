@@ -39,14 +39,14 @@ const C = {
 };
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
   @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:${C.bg}; color:${C.text}; font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  body { background:${C.bg}; color:${C.text}; font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
   ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:#f0fdf4; }
   ::-webkit-scrollbar-thumb { background:#bbf7d0; border-radius:2px; }
-  .syne { font-family:'Syne',sans-serif; }
-  .heading { font-family:'DM Sans',sans-serif; font-weight:700; letter-spacing:-0.02em; }
+  .syne { font-family:'Playfair Display',serif; }
+  .heading { font-family:'Inter',sans-serif; font-weight:700; letter-spacing:-0.02em; }
   .glow { box-shadow:0 0 24px rgba(22,163,74,0.15),0 2px 8px rgba(22,163,74,0.08),inset 0 1px 0 rgba(22,163,74,0.1); }
   .glow-sm { box-shadow:0 2px 12px rgba(22,163,74,0.2),0 0 0 1px rgba(22,163,74,0.1); }
   .pulse-dot { width:8px;height:8px;background:${C.accent};border-radius:50%;animation:pulse 2s infinite; }
@@ -56,12 +56,12 @@ const css = `
   .fade-in { animation:fadeIn .4s ease; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .tab-active { background:rgba(22,163,74,0.1);border-color:${C.accent}!important;color:${C.accent}!important; }
-  .btn-primary { background:${C.accent};color:#ffffff;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s; }
+  .btn-primary { background:${C.accent};color:#ffffff;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s; }
   .btn-primary:hover { background:#15803d;transform:translateY(-1px); }
   .btn-primary:disabled { opacity:.5;cursor:not-allowed;transform:none; }
-  .btn-ghost { background:transparent;border:1px solid ${C.border};color:${C.muted};cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s; }
+  .btn-ghost { background:transparent;border:1px solid ${C.border};color:${C.muted};cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s; }
   .btn-ghost:hover { border-color:${C.accent};color:${C.accent}; }
-  input,textarea,select { background:#f8fffe;border:1px solid ${C.border};color:${C.text};font-family:'DM Sans',sans-serif;outline:none;transition:border .2s; }
+  input,textarea,select { background:#f8fffe;border:1px solid ${C.border};color:${C.text};font-family:'Inter',sans-serif;outline:none;transition:border .2s; }
   input:focus,textarea:focus,select:focus { border-color:${C.accent};background:#ffffff; }
   .sidebar-link { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:${C.muted};transition:all .2s;border:1px solid transparent; }
   .sidebar-link:hover,.sidebar-link.active { background:rgba(22,163,74,0.08);border-color:${C.dim};color:${C.accent}; }
@@ -73,12 +73,41 @@ const css = `
   .leaflet-container { border-radius:12px; }
   .leaflet-popup-content-wrapper { background:#ffffff;border:1px solid #e2e8f0;color:#1a202c;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.12); }
   .leaflet-popup-tip { background:#ffffff; }
-  .leaflet-popup-content { margin:14px 18px;font-family:'DM Sans',sans-serif; }
+  .leaflet-popup-content { margin:14px 18px;font-family:'Inter',sans-serif; }
   .leaflet-popup-close-button { color:#888 !important; }
   .leaflet-control-zoom a { background:#ffffff !important;color:#16a34a !important;border-color:#d1fae5 !important;font-weight:700 !important; }
   .leaflet-control-zoom a:hover { background:#f0fdf4 !important; }
   .leaflet-control-attribution { background:rgba(255,255,255,0.85) !important;color:#888 !important;font-size:12px; }
   .leaflet-control-attribution a { color:#16a34a !important; }
+
+  /* ── Responsive layout fixes ─────────────────────────────── */
+  @media (max-width: 768px) {
+    /* Dashboard shell: stack sidebar above content */
+    .responsive-shell { flex-direction: column !important; }
+    /* Sidebar becomes a top nav bar */
+    .responsive-sidebar { width:100% !important; min-height:unset !important; flex-direction:row !important; flex-wrap:wrap !important; padding:10px 12px !important; border-right:none !important; border-bottom:1px solid #d1fae5 !important; overflow-x:auto; }
+    .responsive-sidebar nav { flex-direction:row !important; flex-wrap:nowrap; overflow-x:auto; gap:4px !important; }
+    .sidebar-link { font-size:12px; padding:8px 10px !important; white-space:nowrap; }
+    .sidebar-link span { display:none; }
+    /* Landing hero padding */
+    .responsive-nav { padding:12px 16px !important; }
+    .responsive-hero { padding-top:80px !important; padding-bottom:40px !important; }
+    /* Grids collapse to single column */
+    .responsive-grid-4 { grid-template-columns: repeat(2,1fr) !important; }
+    .responsive-grid-2 { grid-template-columns: 1fr !important; }
+    .responsive-grid-3 { grid-template-columns: 1fr !important; }
+    /* Main content padding */
+    .responsive-main { padding:16px !important; }
+    /* Stat cards row */
+    .responsive-stats { grid-template-columns: repeat(2,1fr) !important; flex-wrap:wrap !important; }
+    /* Hide sidebar logo text on mobile */
+    .responsive-sidebar-logo-text { display:none !important; }
+  }
+  @media (max-width: 480px) {
+    .responsive-grid-4 { grid-template-columns: 1fr 1fr !important; }
+    .responsive-buttons { flex-direction:column !important; align-items:stretch !important; }
+    .responsive-buttons button { width:100% !important; }
+  }
 `;
 
 // ─── Static data ──────────────────────────────────────────────────────────────
@@ -218,6 +247,7 @@ function Spinner({ size=18 }) {
   );
 }
 
+// ─── LANDING PAGE (original App.jsx design) ───────────────────────────────────
 function LandingPage({ onNavigate }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -257,7 +287,7 @@ function LandingPage({ onNavigate }) {
 
       {/* All content sits above the video */}
       <div style={{ position:"relative", zIndex:1 }}>
-      <nav style={{
+      <nav className="responsive-nav" style={{
         position:"fixed", top:0, left:0, right:0, zIndex:100,
         padding:"16px 40px", display:"flex", alignItems:"center", justifyContent:"space-between",
         background: scrolled ? "rgba(240,253,244,0.97)" : "transparent",
@@ -291,7 +321,7 @@ function LandingPage({ onNavigate }) {
           <p style={{ fontSize:18, color:C.text, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
             Verdian uses computer vision and real-time analytics to classify waste, guide citizens, and optimize municipal collection routes — reducing landfill burden by up to 40%.
           </p>
-          <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+          <div className="responsive-buttons" style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
             <button className="btn-primary glow-sm" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Start Scanning Free</button>
             <button className="btn-ghost" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Admin Demo →</button>
           </div>
@@ -300,7 +330,7 @@ function LandingPage({ onNavigate }) {
         {/* Hero preview card */}
         <div className="fade-in" style={{ maxWidth:900, margin:"60px auto 0", padding:"0 24px" }}>
           <div className="card glow" style={{ padding:24, position:"relative", overflow:"hidden" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
+            <div className="responsive-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
               {[["Recyclable","38%",C.blue,38],["Organic","42%",C.accent,42],["Hazardous","8%",C.danger,8]].map(([label,val,col,pct],i) => (
                 <div key={i} style={{ padding:16, background:C.surface, borderRadius:12, border:`1px solid ${C.border}` }}>
                   <div style={{ fontSize:12, color:C.muted, marginBottom:8 }}>{label}</div>
@@ -327,7 +357,7 @@ function LandingPage({ onNavigate }) {
 
       {/* Stats */}
       <div style={{ padding:"40px", borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
-        <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+        <div className="responsive-grid-4" style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
           {stats.map((s,i) => (
             <div key={i} style={{ textAlign:"center" }}>
               <div className="syne" style={{ fontSize:36, fontWeight:800, color:C.accent }}>{s.val}</div>
@@ -344,7 +374,7 @@ function LandingPage({ onNavigate }) {
             <h2 className="syne" style={{ fontSize:36, fontWeight:800, color:C.text }}>Everything in one platform</h2>
             <p style={{ color:C.muted, marginTop:12 }}>Built for citizens and city managers alike</p>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
+          <div className="responsive-grid-2" style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
             {features.map((f,i) => (
               <div key={i} className="card" style={{ padding:28, display:"flex", gap:18, alignItems:"flex-start", cursor:"pointer", transition:"all .2s" }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
@@ -528,7 +558,7 @@ function Sidebar({ user, activeSection, setActiveSection, onLogout }) {
   ];
   const links = user.role === "admin" ? adminLinks : userLinks;
   return (
-    <div style={{ width:220, minHeight:"100vh", background:"#ffffff", borderRight:"1px solid #d1fae5", boxShadow:"2px 0 8px rgba(0,0,0,0.04)", display:"flex", flexDirection:"column", padding:"20px 12px", flexShrink:0 }}>
+    <div className="responsive-sidebar" style={{ width:220, minHeight:"100vh", background:"#ffffff", borderRight:"1px solid #d1fae5", boxShadow:"2px 0 8px rgba(0,0,0,0.04)", display:"flex", flexDirection:"column", padding:"20px 12px", flexShrink:0 }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, padding:"0 6px", marginBottom:32 }}>
         <div style={{ width:32, height:32, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center" }}>
           <Recycle size={15} color={C.accent} />
@@ -609,7 +639,7 @@ function UserDashboard({ user }) {
   const catColor = { recyclable:C.blue, organic:C.accent, hazardous:C.danger, general:C.muted };
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:22 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:22 }}>
 
       {/* Large greeting hero */}
       <div style={{ borderRadius:20, padding:"36px 40px", background:"linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)", border:"1px solid #bbf7d0" }}>
@@ -761,7 +791,7 @@ function AIScanner({ user }) {
   const reset = () => { setPhase("idle"); setSelectedItem(null); setManualInput(""); setSaveMsg(""); setScannerLocation(null); if(fileInputRef.current) fileInputRef.current.value=""; };
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
 
       {/* Scan History */}
       <div className="card" style={{ padding:20 }}>
@@ -1001,7 +1031,7 @@ function MapView() {
   }, [showLogs]);
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:20 }}>
         <div className="card" style={{ padding:24 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
@@ -1458,7 +1488,7 @@ function AddWaste({ user }) {
   };
 
   if (submitted&&result) return (
-    <div className="fade-in" style={{ padding:28 }}>
+    <div className="fade-in responsive-main" style={{ padding:28 }}>
       <div style={{ maxWidth:520, margin:"0 auto" }}>
         <div className="card glow" style={{ padding:36, textAlign:"center" }}>
           <div style={{ width:72, height:72, borderRadius:"50%", background:C.accentGlow, border:`1px solid ${C.accent}`, margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1491,7 +1521,7 @@ function AddWaste({ user }) {
   );
 
   return (
-    <div className="fade-in" style={{ padding:28 }}>
+    <div className="fade-in responsive-main" style={{ padding:28 }}>
       <div style={{ maxWidth:600, margin:"0 auto" }}>
         <div className="card" style={{ padding:32 }}>
           <div className="heading" style={{ fontWeight:800, fontSize:20, color:C.text, marginBottom:6 }}>Add Waste Item</div>
@@ -1591,7 +1621,7 @@ function Analytics({ isAdmin, user }) {
   const totalPts=logs.reduce((s,l)=>s+(l.points_earned||0),0), maxBar=Math.max(...weeklyData.values,1);
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
       {loading ? <div style={{ textAlign:"center", padding:60 }}><Spinner size={32}/></div> : (<>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
           {[
@@ -1734,7 +1764,7 @@ function AdminDashboard() {
   ];
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:24 }}>
       {/* Admin header */}
       <div className="card" style={{ padding:24, background:"linear-gradient(135deg,#fff5f5 0%,#fee2e2 100%)", borderColor:"rgba(220,38,38,.2)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -1905,7 +1935,7 @@ function HotspotsPage() {
   }));
 
   return (
-    <div className="fade-in" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
+    <div className="fade-in responsive-main" style={{ padding:28, display:"flex", flexDirection:"column", gap:20 }}>
       {/* Summary counts */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
         {[["High","high",C.danger],["Medium","med",C.warn],["Low","low",C.accent]].map(([l,k,c],i)=>(
@@ -2512,7 +2542,7 @@ function AppShell({ user, onLogout }) {
       case "analytics":       return <Analytics isAdmin={user.role==="admin"} user={user}/>;
       case "schedule":        return <Analytics isAdmin={true} user={user}/>;
       case "users":           return (
-        <div className="fade-in" style={{ padding:28 }}>
+        <div className="fade-in responsive-main" style={{ padding:28 }}>
           <div className="card" style={{ padding:24 }}>
             <div className="heading" style={{ fontWeight:700, fontSize:17, color:C.text, marginBottom:8 }}>Registered Citizens</div>
             <div style={{ color:C.muted, fontSize:14 }}>User management — data lives in your Supabase profiles table.</div>
@@ -2523,7 +2553,7 @@ function AppShell({ user, onLogout }) {
     }
   };
   return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#f0fdf4" }}>
+    <div className="responsive-shell" style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#f0fdf4" }}>
       {user.role==="picker" && <PickerBeacon user={user}/>}
       <Sidebar user={user} activeSection={section} setActiveSection={setSection} onLogout={onLogout}/>
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
