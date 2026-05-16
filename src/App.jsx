@@ -218,438 +218,163 @@ function Spinner({ size=18 }) {
   );
 }
 
-// ─── LANDING PAGE (original App.jsx design) ───────────────────────────────────
-// ─── PASTE THIS ENTIRE BLOCK to replace the LandingPage function in App.jsx ───
-// Also replace the relevant parts of the `css` constant (font imports + overrides)
-// at the top of App.jsx — see the CSS_PATCH below.
-
-// ─── CSS PATCH ────────────────────────────────────────────────────────────────
-// Replace the existing `const css = \`...\`` block's font import line with:
-//
-//   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
-//
-// And change every occurrence of font-family:'DM Sans',sans-serif  →  font-family:'Geist',sans-serif
-// And every occurrence of font-family:'Syne',sans-serif            →  font-family:'Geist',sans-serif
-// Then add these two overrides inside the css string:
-//
-//   .syne { font-family:'Geist',sans-serif; letter-spacing:-0.04em; }
-//   body  { letter-spacing:-0.015em; }
-//
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
-
 function LandingPage({ onNavigate }) {
   const [scrolled, setScrolled] = useState(false);
-
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const h = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
   const stats = [
-    { val: "12k+", label: "Active users" },
-    { val: "40%",  label: "Landfill reduction" },
-    { val: "94%",  label: "Classification accuracy" },
-    { val: "8",    label: "Cities covered" },
+    { val:"2.1B",    label:"Tonnes landfilled yearly" },
+    { val:"67%",     label:"Recyclables misclassified" },
+    { val:"₹48K Cr", label:"Recycling value lost" },
+    { val:"94%",     label:"Our AI accuracy" },
   ];
-
   const features = [
-    {
-      icon: ScanLine,
-      title: "AI Scanner",
-      desc: "Upload an image or describe the item. Waste classified in seconds.",
-    },
-    {
-      icon: Map,
-      title: "Live Hotspot Map",
-      desc: "Real-time accumulation data helps dispatch trucks efficiently.",
-    },
-    {
-      icon: BarChart3,
-      title: "Smart Analytics",
-      desc: "Track recycling rates, CO₂ savings and collection schedules.",
-    },
-    {
-      icon: Leaf,
-      title: "Eco Rewards",
-      desc: "Earn green points for every item classified. Redeem at partners.",
-    },
+    { icon:ScanLine,  title:"AI Scanner",       desc:"Upload an image or describe the item. Our model classifies waste in seconds with 94% accuracy." },
+    { icon:Map,       title:"Live Hotspot Map",  desc:"Real-time waste accumulation maps help municipalities dispatch trucks efficiently." },
+    { icon:BarChart3, title:"Smart Analytics",   desc:"Track recycling rates, CO₂ savings, and collection schedules on one dashboard." },
+    { icon:Leaf,      title:"Eco Rewards",       desc:"Earn green points for every item correctly classified. Redeem at partner stores." },
   ];
-
-  // Tight token set for the landing page
-  const L = {
-    bg:      "#f7fdf8",
-    surface: "#ffffff",
-    border:  "#e2f5e8",
-    accent:  "#16a34a",
-    dim:     "#d1fae5",
-    text:    "#0f2d1a",
-    muted:   "#5a7a65",
-    faint:   "#f0fdf4",
-  };
-
-  const navStyle = {
-    position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-    padding: "0 48px", height: 56,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    background: scrolled ? "rgba(247,253,248,0.95)" : "transparent",
-    borderBottom: scrolled ? `1px solid ${L.border}` : "none",
-    backdropFilter: scrolled ? "blur(12px)" : "none",
-    transition: "all .25s ease",
-  };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: L.bg,
-      fontFamily: "'Geist', 'Inter', sans-serif",
-      color: L.text,
-      letterSpacing: "-0.015em",
-      overflowX: "hidden",
-    }}>
+    <div style={{ minHeight:"100vh", background:"#f0fdf4", overflowX:"hidden", position:"relative" }}>
 
-      {/* Subtle background texture — single radial gradient */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(22,163,74,0.07) 0%, transparent 70%)",
-      }} />
+      {/* ── Background Video ── */}
+      <video autoPlay muted loop playsInline style={{
+        position:"fixed", top:0, left:0,
+        width:"100%", height:"100%",
+        objectFit:"cover",
+        transform:"scale(1.35)",
+        opacity:0.18,
+        zIndex:0,
+        pointerEvents:"none",
+      }}>
+        <source src="/landing1.mp4" type="video/mp4" />
+      </video>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-
-        {/* ── Nav ── */}
-        <nav style={navStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              width: 28, height: 28,
-              background: L.accent,
-              borderRadius: 7,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Recycle size={14} color="#fff" />
-            </div>
-            <span style={{
-              fontWeight: 700, fontSize: 15,
-              letterSpacing: "-0.03em", color: L.text,
-            }}>
-              VERDIAN
-            </span>
+      {/* All content sits above the video */}
+      <div style={{ position:"relative", zIndex:1 }}>
+      <nav style={{
+        position:"fixed", top:0, left:0, right:0, zIndex:100,
+        padding:"16px 40px", display:"flex", alignItems:"center", justifyContent:"space-between",
+        background: scrolled ? "rgba(240,253,244,0.97)" : "transparent",
+        borderBottom: scrolled ? `1px solid ${C.border}` : "none",
+        backdropFilter: scrolled ? "blur(20px)" : "none", transition:"all .3s"
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:36, height:36, background:C.accentGlow, border:`1px solid ${C.accent}`, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Recycle size={18} color={C.accent} />
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button
-              onClick={() => onNavigate("auth")}
-              style={{
-                padding: "7px 16px", borderRadius: 8,
-                border: `1px solid ${L.border}`,
-                background: "transparent", color: L.muted,
-                fontSize: 13, fontWeight: 500, cursor: "pointer",
-                fontFamily: "inherit", letterSpacing: "-0.01em",
-                transition: "all .15s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = L.accent; e.currentTarget.style.color = L.accent; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = L.border; e.currentTarget.style.color = L.muted; }}
-            >
-              Sign in
-            </button>
-            <button
-              onClick={() => onNavigate("auth")}
-              style={{
-                padding: "7px 16px", borderRadius: 8,
-                border: "none",
-                background: L.accent, color: "#fff",
-                fontSize: 13, fontWeight: 600, cursor: "pointer",
-                fontFamily: "inherit", letterSpacing: "-0.01em",
-                transition: "all .15s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#15803d"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = L.accent; }}
-            >
-              Get started
-            </button>
-          </div>
-        </nav>
+          <span className="syne" style={{ fontWeight:800, fontSize:20, color:C.text }}>VERDIAN</span>
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <button className="btn-ghost" style={{ padding:"8px 20px", borderRadius:8, fontSize:14 }} onClick={() => onNavigate("auth")}>Sign In</button>
+          <button className="btn-primary" style={{ padding:"8px 20px", borderRadius:8, fontSize:14 }} onClick={() => onNavigate("auth")}>Get Started →</button>
+        </div>
+      </nav>
 
-        {/* ── Hero ── */}
-        <section style={{
-          paddingTop: 128, paddingBottom: 88,
-          maxWidth: 720, margin: "0 auto",
-          padding: "128px 48px 80px",
-          textAlign: "left",
-        }}>
-          {/* Pill badge */}
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "4px 12px", borderRadius: 100,
-            border: `1px solid ${L.dim}`,
-            background: "rgba(22,163,74,0.06)",
-            marginBottom: 20,
-          }}>
-            <div style={{
-              width: 6, height: 6, borderRadius: "50%",
-              background: L.accent,
-              boxShadow: "0 0 0 2px rgba(22,163,74,0.2)",
-            }} />
-            <span style={{ fontSize: 12, color: L.accent, fontWeight: 500, letterSpacing: "0" }}>
-              AI-powered waste intelligence
-            </span>
+      {/* Hero */}
+      <div style={{ paddingTop:120, paddingBottom:80, textAlign:"center", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-100, left:"50%", transform:"translateX(-50%)", width:600, height:600, background:"radial-gradient(circle, rgba(22,163,74,0.10) 0%, transparent 70%)", pointerEvents:"none" }} />
+        <div style={{ position:"absolute", top:200, left:"10%", width:300, height:300, background:"radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%)", pointerEvents:"none" }} />
+        <div className="fade-in" style={{ maxWidth:800, margin:"0 auto", padding:"0 24px" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:100, background:C.accentGlow, border:`1px solid ${C.dim}`, marginBottom:24 }}>
+            <div className="pulse-dot" />
+            <span style={{ fontSize:12, color:C.accent, fontWeight:500 }}>AI-Powered Waste Intelligence Platform</span>
           </div>
-
-          {/* Headline */}
-          <h1 style={{
-            fontSize: "clamp(36px, 5.5vw, 64px)",
-            fontWeight: 700,
-            lineHeight: 1.08,
-            letterSpacing: "-0.04em",
-            color: L.text,
-            marginBottom: 18,
-            margin: "0 0 18px",
-          }}>
-            Smarter waste.<br />
-            <span style={{ color: L.accent }}>Greener cities.</span>
+          <h1 className="syne" style={{ fontSize:"clamp(40px,7vw,80px)", fontWeight:800, lineHeight:1.05, marginBottom:24, color:C.text }}>
+            Smarter Waste.<br /><span style={{ color:C.accent }}>Greener Cities.</span>
           </h1>
-
-          {/* Sub */}
-          <p style={{
-            fontSize: 16, color: L.muted,
-            lineHeight: 1.6, letterSpacing: "-0.01em",
-            maxWidth: 480, margin: "0 0 32px",
-          }}>
-            Verdian uses computer vision and real-time analytics to classify waste,
-            guide citizens, and optimise municipal collection routes — reducing
-            landfill burden by up to 40%.
+          <p style={{ fontSize:18, color:C.text, maxWidth:560, margin:"0 auto 40px", lineHeight:1.7 }}>
+            Verdian uses computer vision and real-time analytics to classify waste, guide citizens, and optimize municipal collection routes — reducing landfill burden by up to 40%.
           </p>
-
-          {/* CTAs */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button
-              onClick={() => onNavigate("auth")}
-              style={{
-                padding: "11px 24px", borderRadius: 10,
-                background: L.accent, border: "none",
-                color: "#fff", fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit",
-                letterSpacing: "-0.01em", transition: "all .15s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "#15803d"}
-              onMouseLeave={e => e.currentTarget.style.background = L.accent}
-            >
-              Start scanning — free
-            </button>
-            <button
-              onClick={() => onNavigate("auth")}
-              style={{
-                padding: "11px 24px", borderRadius: 10,
-                background: "transparent",
-                border: `1px solid ${L.border}`,
-                color: L.muted, fontSize: 14, fontWeight: 500,
-                cursor: "pointer", fontFamily: "inherit",
-                letterSpacing: "-0.01em", transition: "all .15s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = L.accent; e.currentTarget.style.color = L.accent; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = L.border; e.currentTarget.style.color = L.muted; }}
-            >
-              Admin demo →
-            </button>
+          <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+            <button className="btn-primary glow-sm" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Start Scanning Free</button>
+            <button className="btn-ghost" style={{ padding:"14px 32px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>Admin Demo →</button>
           </div>
-        </section>
+        </div>
 
-        {/* ── Hero preview card ── */}
-        <section style={{ maxWidth: 880, margin: "0 auto", padding: "0 48px 80px" }}>
-          <div style={{
-            background: L.surface,
-            border: `1px solid ${L.border}`,
-            borderRadius: 16, padding: 20,
-          }}>
-            {/* Category bars */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
-              {[
-                ["Recyclable", "38%", C.blue, 38],
-                ["Organic",    "42%", C.accent, 42],
-                ["Hazardous",  "8%",  C.danger, 8],
-              ].map(([label, val, col, pct], i) => (
-                <div key={i} style={{
-                  padding: "12px 14px",
-                  background: L.faint,
-                  borderRadius: 10,
-                  border: `1px solid ${L.border}`,
-                }}>
-                  <div style={{ fontSize: 11, color: L.muted, marginBottom: 6, letterSpacing: "0" }}>{label}</div>
-                  <div style={{ height: 4, borderRadius: 2, background: L.dim, overflow: "hidden", marginBottom: 6 }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: col, borderRadius: 2 }} />
+        {/* Hero preview card */}
+        <div className="fade-in" style={{ maxWidth:900, margin:"60px auto 0", padding:"0 24px" }}>
+          <div className="card glow" style={{ padding:24, position:"relative", overflow:"hidden" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
+              {[["Recyclable","38%",C.blue,38],["Organic","42%",C.accent,42],["Hazardous","8%",C.danger,8]].map(([label,val,col,pct],i) => (
+                <div key={i} style={{ padding:16, background:C.surface, borderRadius:12, border:`1px solid ${C.border}` }}>
+                  <div style={{ fontSize:12, color:C.muted, marginBottom:8 }}>{label}</div>
+                  <div style={{ height:6, borderRadius:3, background:C.dim, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:3 }} />
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", color: L.text }}>{val}</div>
+                  <div className="syne" style={{ fontSize:20, fontWeight:700, marginTop:8, color:C.text }}>{val}</div>
                 </div>
               ))}
             </div>
-
-            {/* Classification result row */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 14px",
-              background: L.faint,
-              borderRadius: 10,
-              border: `1px solid ${L.border}`,
-            }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 9,
-                background: "rgba(22,163,74,0.08)",
-                border: `1px solid ${L.dim}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0,
-              }}>
-                <ScanLine size={16} color={L.accent} />
+            <div style={{ marginTop:16, padding:16, background:C.surface, borderRadius:12, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:16 }}>
+              <div style={{ width:48, height:48, borderRadius:10, background:C.accentGlow, border:`1px solid ${C.dim}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <ScanLine size={22} color={C.accent} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: L.muted, marginBottom: 2 }}>AI classification result</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: L.text, letterSpacing: "-0.01em" }}>
-                  Plastic PET Bottle → Recyclable
-                </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, color:C.muted }}>AI Classification Result</div>
+                <div style={{ fontWeight:600, color:"#14532d" }}>Plastic PET Bottle → Recyclable</div>
               </div>
-              <div style={{
-                padding: "3px 10px", borderRadius: 100,
-                background: "rgba(22,163,74,0.09)",
-                border: `1px solid ${L.dim}`,
-                fontSize: 11, color: L.accent, fontWeight: 500,
-              }}>
-                94% confidence
-              </div>
+              <div style={{ padding:"4px 12px", borderRadius:100, background:"rgba(34,197,94,.15)", border:`1px solid ${C.dim}`, fontSize:12, color:C.accent }}>94% confidence</div>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* ── Stats strip ── */}
-        <section style={{
-          borderTop: `1px solid ${L.border}`,
-          borderBottom: `1px solid ${L.border}`,
-          padding: "32px 48px",
-        }}>
-          <div style={{
-            maxWidth: 880, margin: "0 auto",
-            display: "grid", gridTemplateColumns: "repeat(4,1fr)",
-            gap: 0,
-          }}>
-            {stats.map((s, i) => (
-              <div key={i} style={{
-                textAlign: "center",
-                borderRight: i < 3 ? `1px solid ${L.border}` : "none",
-                padding: "0 24px",
-              }}>
-                <div style={{
-                  fontSize: 28, fontWeight: 700,
-                  letterSpacing: "-0.04em", color: L.accent,
-                  lineHeight: 1.1, marginBottom: 4,
-                }}>
-                  {s.val}
-                </div>
-                <div style={{ fontSize: 12, color: L.muted, letterSpacing: "-0.005em" }}>{s.label}</div>
-              </div>
-            ))}
+      {/* Stats */}
+      <div style={{ padding:"40px", borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+          {stats.map((s,i) => (
+            <div key={i} style={{ textAlign:"center" }}>
+              <div className="syne" style={{ fontSize:36, fontWeight:800, color:C.accent }}>{s.val}</div>
+              <div style={{ fontSize:13, color:C.muted, marginTop:4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Features */}
+      <div style={{ padding:"80px 40px" }}>
+        <div style={{ maxWidth:900, margin:"0 auto" }}>
+          <div style={{ textAlign:"center", marginBottom:48 }}>
+            <h2 className="syne" style={{ fontSize:36, fontWeight:800, color:C.text }}>Everything in one platform</h2>
+            <p style={{ color:C.muted, marginTop:12 }}>Built for citizens and city managers alike</p>
           </div>
-        </section>
-
-        {/* ── Features ── */}
-        <section style={{ maxWidth: 880, margin: "0 auto", padding: "72px 48px" }}>
-          <div style={{ marginBottom: 40 }}>
-            <p style={{ fontSize: 11, color: L.accent, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>
-              Platform
-            </p>
-            <h2 style={{
-              fontSize: 28, fontWeight: 700,
-              letterSpacing: "-0.035em", color: L.text,
-              margin: 0,
-            }}>
-              Everything in one place
-            </h2>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: L.border, border: `1px solid ${L.border}`, borderRadius: 14, overflow: "hidden" }}>
-            {features.map((f, i) => (
-              <div key={i} style={{
-                padding: "28px 28px",
-                background: L.surface,
-                display: "flex", gap: 16, alignItems: "flex-start",
-                transition: "background .15s",
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = L.faint}
-                onMouseLeave={e => e.currentTarget.style.background = L.surface}
-              >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 9,
-                  background: "rgba(22,163,74,0.08)",
-                  border: `1px solid ${L.dim}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0, marginTop: 1,
-                }}>
-                  <f.icon size={16} color={L.accent} />
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
+            {features.map((f,i) => (
+              <div key={i} className="card" style={{ padding:28, display:"flex", gap:18, alignItems:"flex-start", cursor:"pointer", transition:"all .2s" }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                <div style={{ width:44, height:44, borderRadius:12, background:C.accentGlow, border:`1px solid ${C.dim}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <f.icon size={20} color={C.accent} />
                 </div>
                 <div>
-                  <div style={{
-                    fontWeight: 600, fontSize: 14,
-                    letterSpacing: "-0.02em", color: L.text,
-                    marginBottom: 5,
-                  }}>
-                    {f.title}
-                  </div>
-                  <div style={{ color: L.muted, fontSize: 13, lineHeight: 1.55, letterSpacing: "-0.005em" }}>
-                    {f.desc}
-                  </div>
+                  <div className="syne" style={{ fontWeight:700, fontSize:17, color:C.text, marginBottom:6 }}>{f.title}</div>
+                  <div style={{ color:C.muted, fontSize:14, lineHeight:1.6 }}>{f.desc}</div>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-
-        {/* ── CTA banner ── */}
-        <section style={{
-          borderTop: `1px solid ${L.border}`,
-          padding: "64px 48px",
-          textAlign: "center",
-        }}>
-          <h2 style={{
-            fontSize: 26, fontWeight: 700,
-            letterSpacing: "-0.035em", color: L.text,
-            marginBottom: 8, margin: "0 0 8px",
-          }}>
-            Join 12,000+ eco-conscious users
-          </h2>
-          <p style={{ fontSize: 13, color: L.muted, marginBottom: 28, letterSpacing: "-0.005em" }}>
-            Delhi · Mumbai · Bengaluru · Hyderabad · Chennai
-          </p>
-          <button
-            onClick={() => onNavigate("auth")}
-            style={{
-              padding: "12px 28px", borderRadius: 10,
-              background: L.accent, border: "none",
-              color: "#fff", fontSize: 14, fontWeight: 600,
-              cursor: "pointer", fontFamily: "inherit",
-              letterSpacing: "-0.01em", transition: "all .15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "#15803d"}
-            onMouseLeave={e => e.currentTarget.style.background = L.accent}
-          >
-            Get started — it's free
-          </button>
-        </section>
-
-        {/* ── Footer ── */}
-        <footer style={{
-          borderTop: `1px solid ${L.border}`,
-          padding: "18px 48px",
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <div style={{
-              width: 20, height: 20, background: L.accent,
-              borderRadius: 5,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Recycle size={11} color="#fff" />
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.02em", color: L.text }}>VERDIAN</span>
-          </div>
-          <span style={{ fontSize: 12, color: L.muted }}>© 2026 Smart Waste Intelligence</span>
-        </footer>
-
+        </div>
       </div>
+
+      {/* CTA */}
+      <div style={{ padding:"60px 40px", textAlign:"center", borderTop:`1px solid ${C.border}` }}>
+        <h2 className="syne" style={{ fontSize:32, fontWeight:800, color:C.text, marginBottom:16 }}>Join 12,000+ eco-conscious users</h2>
+        <p style={{ color:C.muted, marginBottom:32 }}>Delhi · Mumbai · Bengaluru · Hyderabad · Chennai</p>
+        <button className="btn-primary glow" style={{ padding:"16px 40px", borderRadius:12, fontSize:16 }} onClick={() => onNavigate("auth")}>
+          Get Started — It's Free
+        </button>
+      </div>
+      <div style={{ padding:"20px 40px", textAlign:"center", borderTop:`1px solid ${C.border}`, color:C.muted, fontSize:12 }}>
+        © 2026 Verdian. Smart Waste Intelligence.
+      </div>
+
+      </div> {/* end z-index wrapper */}
     </div>
   );
 }
